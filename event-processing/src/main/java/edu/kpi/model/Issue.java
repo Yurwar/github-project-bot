@@ -6,10 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class Maintainer {
-    private String githubUsername;
-    private String chatId;
+public class Issue {
+    private String title;
+    private String description;
 }
