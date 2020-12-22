@@ -1,13 +1,12 @@
 package edu.kpi;
 
-/**
- * Hello world!
- *
- */
-public class TwitterIntegrationApp
-{
-    public static void main( String[] args )
-    {
-        System.out.println( "Hello World!" );
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class TwitterIntegrationApp {
+
+    public static void main(String[] args) {
+        SpringApplication.run(TwitterIntegrationApp.class, args);
     }
 }
