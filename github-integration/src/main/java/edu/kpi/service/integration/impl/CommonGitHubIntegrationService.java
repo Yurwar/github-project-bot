@@ -3,7 +3,7 @@ package edu.kpi.service.integration.impl;
 import edu.kpi.JwtUtils;
 import edu.kpi.dto.AccessTokenResponseDto;
 import io.netty.util.internal.StringUtil;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -19,14 +19,15 @@ import java.util.Optional;
 
 public class CommonGitHubIntegrationService {
 
-    private static final String GITHUB_INSTALLATION_ACCESS_TOKEN_URL_KEY = "github.api.installation.access.token.url";
     private static final String AUTH_HEADER_NAME = "Authorization";
     private static final String AUTH_HEADER_TYPE = "token";
     private static final String JWT_AUTH_HEADER_TYPE = "Bearer";
     private static final String INSTALLATION_ID_PLACEHOLDER = "{installationId}";
 
+    @Value("${github.api.installation.access.token.url}")
+    private String githubInstallationAccessTokenUrl;
+
     private final JwtUtils jwtUtils;
-    private final Environment environment;
     private final RestTemplate restTemplate;
 
     private final Map<String, String> accessTokens = new HashMap<>();
@@ -34,10 +35,9 @@ public class CommonGitHubIntegrationService {
     private String jwt;
     private Date expirationDate;
 
-    public CommonGitHubIntegrationService(final JwtUtils jwtUtils, final Environment environment) {
+    public CommonGitHubIntegrationService(final JwtUtils jwtUtils) {
 
         this.jwtUtils = jwtUtils;
-        this.environment = environment;
         this.restTemplate = new RestTemplate();
     }
 
@@ -84,23 +84,8 @@ public class CommonGitHubIntegrationService {
 
     private String getServiceUrl(final String installationId) {
 
-        return Optional.ofNullable(environment.getProperty(GITHUB_INSTALLATION_ACCESS_TOKEN_URL_KEY))
+        return Optional.ofNullable(githubInstallationAccessTokenUrl)
                 .orElse(StringUtil.EMPTY_STRING)
                 .replace(INSTALLATION_ID_PLACEHOLDER, installationId);
-    }
-
-    public JwtUtils getJwtUtils() {
-
-        return jwtUtils;
-    }
-
-    public Environment getEnvironment() {
-
-        return environment;
-    }
-
-    public RestTemplate getRestTemplate() {
-
-        return restTemplate;
     }
 }
