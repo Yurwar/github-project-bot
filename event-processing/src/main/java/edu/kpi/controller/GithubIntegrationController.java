@@ -1,5 +1,6 @@
 package edu.kpi.controller;
 
+import edu.kpi.dto.IssueLabelDto;
 import edu.kpi.model.Message;
 import edu.kpi.model.MessageRequest;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -15,6 +16,11 @@ public class GithubIntegrationController {
     public Flux<Message> getTestMessage(MessageRequest request) {
         return Flux.range(0, request.getId())
                 .map(id -> new Message("Test message: " + id));
+    }
+
+    @MessageMapping("issueCreated")
+    public Flux<IssueLabelDto> issueCreated(IssueLabelDto request) {
+        return Flux.just(request);
     }
 
 }
