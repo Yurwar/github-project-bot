@@ -4,7 +4,7 @@ package edu.kpi;
  * Hello world!
  *
  */
-public class App 
+public class TwitterIntegrationApp
 {
     public static void main( String[] args )
     {
