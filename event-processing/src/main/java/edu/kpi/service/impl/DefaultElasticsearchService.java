@@ -20,9 +20,7 @@ public class DefaultElasticsearchService implements ElasticsearchService {
 
     @Override
     public void saveIssue(Issue issue) {
-        elasticsearchOperations.save(issue)
-                .log()
-                .subscribe();
+        elasticsearchOperations.save(issue);
     }
 
     @Override
