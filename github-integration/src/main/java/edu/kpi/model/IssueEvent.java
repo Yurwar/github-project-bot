@@ -1,4 +1,4 @@
-package edu.kpi.dto;
+package edu.kpi.model;
 
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @Builder
 @ToString
-public class EventDto {
+public class IssueEvent {
 
     private String installationId;
     private String action;
@@ -17,4 +17,7 @@ public class EventDto {
     private String repo;
     private String issueNumber;
     private List<String> labels;
+    private boolean awaitingTriage;
+    private List<String> similarIssues;
+    private String comment;
 }
