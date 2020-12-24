@@ -1,8 +1,8 @@
 package edu.kpi.client;
 
-import edu.kpi.dto.EventDto;
-import edu.kpi.model.Message;
-import edu.kpi.model.MessageRequest;
+import edu.kpi.model.IssueEvent;
+import edu.kpi.model.PullRequestEvent;
+import edu.kpi.model.ReleaseEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.stereotype.Service;
@@ -20,26 +20,24 @@ public class EventProcessorClient {
         this.requester = requester;
     }
 
-    public Flux<EventDto> connectToProcessor(final Flux<EventDto> eventFlux) {
+    public Flux<IssueEvent> connectToIssueProcessor(final Flux<IssueEvent> eventFlux) {
 
-        return requester.route("githubIntegrationController.connect")
+        return requester.route("processorController.issue")
                 .data(eventFlux)
-                .retrieveFlux(EventDto.class);
+                .retrieveFlux(IssueEvent.class);
     }
 
-    public Flux<EventDto> publishEvent(final EventDto event) {
+    public Flux<PullRequestEvent> connectToPullRequestProcessor(final Flux<PullRequestEvent> eventFlux) {
 
-        return requester.route("githubIntegrationController.issueCreated")
-                .data(event)
-                .retrieveFlux(EventDto.class);
+        return requester.route("processorController.pullRequest")
+                .data(eventFlux)
+                .retrieveFlux(PullRequestEvent.class);
     }
 
+    public Flux<ReleaseEvent> connectToReleaseProcessor(final Flux<ReleaseEvent> eventFlux) {
 
-    public Flux<Message> getMessage(final String id) {
-
-        return requester.route("githubIntegrationController.getTestMessage")
-                .data(new MessageRequest(id))
-                .retrieveFlux(Message.class);
+        return requester.route("processorController.release")
+                .data(eventFlux)
+                .retrieveFlux(ReleaseEvent.class);
     }
-
 }

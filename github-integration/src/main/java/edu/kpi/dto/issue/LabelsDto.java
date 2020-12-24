@@ -1,4 +1,4 @@
-package edu.kpi.dto;
+package edu.kpi.dto.issue;
 
 import lombok.Builder;
 import lombok.Data;
