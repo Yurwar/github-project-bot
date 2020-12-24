@@ -1,7 +1,7 @@
 package edu.kpi.service.integration.impl;
 
 import edu.kpi.JwtUtils;
-import edu.kpi.dto.IssueLabelDto;
+import edu.kpi.dto.EventDto;
 import edu.kpi.dto.LabelsDto;
 import edu.kpi.service.integration.IssueLabelIntegrationService;
 import io.netty.util.internal.StringUtil;
@@ -32,7 +32,7 @@ public class GitHubIssueLabelIntegrationService extends CommonGitHubIntegrationS
     }
 
     @Override
-    public Mono<Void> addLabelsForIssue(final IssueLabelDto data) {
+    public Mono<Void> addLabelsForIssue(final EventDto data) {
 
         return WebClient.create(getServiceUrl(data))
                 .post()
@@ -41,7 +41,7 @@ public class GitHubIssueLabelIntegrationService extends CommonGitHubIntegrationS
                 .exchangeToMono(resp -> Mono.empty());
     }
 
-    private String getServiceUrl(final IssueLabelDto data) {
+    private String getServiceUrl(final EventDto data) {
 
         return Optional.ofNullable(githubIssueLabelIntegrationUrl)
                 .orElse(StringUtil.EMPTY_STRING)

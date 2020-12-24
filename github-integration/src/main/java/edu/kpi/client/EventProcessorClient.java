@@ -1,6 +1,6 @@
 package edu.kpi.client;
 
-import edu.kpi.dto.IssueLabelDto;
+import edu.kpi.dto.EventDto;
 import edu.kpi.model.Message;
 import edu.kpi.model.MessageRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +20,18 @@ public class EventProcessorClient {
         this.requester = requester;
     }
 
-    public Flux<IssueLabelDto> publishEvent(final IssueLabelDto event) {
+    public Flux<EventDto> connectToProcessor(final Flux<EventDto> eventFlux) {
+
+        return requester.route("githubIntegrationController.connect")
+                .data(eventFlux)
+                .retrieveFlux(EventDto.class);
+    }
+
+    public Flux<EventDto> publishEvent(final EventDto event) {
 
         return requester.route("githubIntegrationController.issueCreated")
                 .data(event)
-                .retrieveFlux(IssueLabelDto.class);
+                .retrieveFlux(EventDto.class);
     }
 
 

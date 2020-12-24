@@ -1,6 +1,6 @@
 package edu.kpi.controller;
 
-import edu.kpi.dto.IssueLabelDto;
+import edu.kpi.dto.EventDto;
 import edu.kpi.model.Message;
 import edu.kpi.model.MessageRequest;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -19,8 +19,13 @@ public class GithubIntegrationController {
     }
 
     @MessageMapping("issueCreated")
-    public Flux<IssueLabelDto> issueCreated(IssueLabelDto request) {
+    public Flux<EventDto> issueCreated(EventDto request) {
         return Flux.just(request);
+    }
+
+    @MessageMapping("connect")
+    public Flux<EventDto> connect(Flux<EventDto> eventFlux) {
+        return eventFlux;
     }
 
 }
