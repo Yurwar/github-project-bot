@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @Builder
 @ToString
-public class IssueLabelDto {
+public class EventDto {
 
     private String installationId;
     private String action;
