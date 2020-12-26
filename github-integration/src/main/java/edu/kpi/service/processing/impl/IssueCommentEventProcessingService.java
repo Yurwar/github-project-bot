@@ -1,21 +1,21 @@
 package edu.kpi.service.processing.impl;
 
 import edu.kpi.client.EventProcessorClient;
-import edu.kpi.converter.ReleaseEventConverter;
-import edu.kpi.model.ReleaseEvent;
+import edu.kpi.converter.IssueCommentEventConverter;
+import edu.kpi.model.IssueCommentEvent;
 import edu.kpi.service.processing.EventProcessingService;
 import edu.kpi.service.processing.utils.EventSink;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 @Service
-public class ReleaseEventProcessingService implements EventProcessingService {
+public class IssueCommentEventProcessingService implements EventProcessingService {
 
-    private final EventSink<ReleaseEvent> eventSink;
-    private final Flux<ReleaseEvent> eventFlux;
+    private final EventSink<IssueCommentEvent> eventSink;
+    private final Flux<IssueCommentEvent> eventFlux;
     private final EventProcessorClient eventProcessorClient;
 
-    public ReleaseEventProcessingService(final EventProcessorClient eventProcessorClient) {
+    public IssueCommentEventProcessingService(final EventProcessorClient eventProcessorClient) {
 
         this.eventSink = new EventSink<>();
         this.eventFlux = Flux.create(eventSink);
@@ -28,16 +28,16 @@ public class ReleaseEventProcessingService implements EventProcessingService {
     @Override
     public void processEvent(final String event) {
 
-        eventSink.publish(ReleaseEventConverter.convert(event));
+        eventSink.publish(IssueCommentEventConverter.convert(event));
     }
 
     private void establishConnection() {
 
-        eventProcessorClient.connectToReleaseProcessor(getInputFlux())
+        eventProcessorClient.connectToIssueCommentProcessor(getInputFlux())
                 .subscribe();
     }
 
-    private Flux<ReleaseEvent> getInputFlux() {
+    private Flux<IssueCommentEvent> getInputFlux() {
 
         return eventFlux.log();
     }

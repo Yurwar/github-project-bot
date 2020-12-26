@@ -1,5 +1,6 @@
 package edu.kpi.controller;
 
+import edu.kpi.dto.IssueCommentEvent;
 import edu.kpi.dto.IssueEvent;
 import edu.kpi.dto.PullRequestEvent;
 import edu.kpi.dto.ReleaseEvent;
@@ -32,6 +33,12 @@ public class ProcessorController {
 
     @MessageMapping("release")
     public Flux<ReleaseEvent> connectRelease(Flux<ReleaseEvent> eventFlux) {
+
+        return eventFlux;
+    }
+
+    @MessageMapping("issueComment")
+    public Flux<IssueCommentEvent> connectIssueComment(Flux<IssueCommentEvent> eventFlux) {
 
         return eventFlux;
     }
