@@ -19,6 +19,7 @@ public class IssueEventConverter extends CommonEventConverter {
                 .action(event.get("action").asText())
                 .owner(event.get("repository").get("owner").get("login").asText())
                 .repo(event.get("repository").get("name").asText())
+                .id(event.get("issue").get("id").asText())
                 .issueNumber(event.get("issue").get("number").asText())
                 .build();
     }

@@ -11,6 +11,7 @@ import java.util.List;
 @ToString
 public class IssueEvent {
 
+    private String id;
     private String installationId;
     private String action;
     private String owner;
