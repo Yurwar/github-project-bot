@@ -19,6 +19,10 @@ public class PullRequestEventConverter extends CommonEventConverter {
                 .action(event.get("action").asText())
                 .owner(event.get("repository").get("owner").get("login").asText())
                 .repo(event.get("repository").get("name").asText())
+                .number(event.get("number").asText())
+                .sourceRepo(event.get("pull_request").get("head").get("ref").asText())
+                .destinationRepo(event.get("pull_request").get("base").get("ref").asText())
+                .merged(event.get("pull_request").get("merged").asBoolean())
                 .build();
     }
 }
