@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class IssueEventProcessingService implements EventProcessingService {
@@ -64,11 +65,19 @@ public class IssueEventProcessingService implements EventProcessingService {
 
         } else {
 
-            event.setComment("Bot comment: this issue is duplicate. Please, check: "
-                    + String.join(", ", event.getSimilarIssues())
-                    + ".");
+            event.setLabels(Collections.singletonList("duplicate"));
+            event.setComment("Duplicate of: " + getSimilarIssuesString(event.getSimilarIssues()));
 
-            return issueIntegrationService.addCommentForIssue(event);
+            return issueIntegrationService.addCommentForIssue(event)
+                    .mergeWith(issueIntegrationService.addLabelsForIssue(event))
+                    .then();
         }
+    }
+
+    private String getSimilarIssuesString(final List<String> similarIssues) {
+
+        return similarIssues.stream()
+                .map(issue -> "#" + issue)
+                .collect(Collectors.joining(", "));
     }
 }
