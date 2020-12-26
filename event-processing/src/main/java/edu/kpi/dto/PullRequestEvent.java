@@ -13,4 +13,8 @@ public class PullRequestEvent {
     private String action;
     private String owner;
     private String repo;
+    private String number;
+    private String sourceRepo;
+    private String destinationRepo;
+    private boolean merged;
 }
