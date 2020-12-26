@@ -7,8 +7,8 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 
-import static edu.kpi.utils.Constants.Telegram.CLOSED;
-import static edu.kpi.utils.Constants.Telegram.OPENED;
+import static edu.kpi.utils.Constants.CLOSED;
+import static edu.kpi.utils.Constants.OPENED;
 
 public class DefaultStatisticService implements StatisticService {
 
