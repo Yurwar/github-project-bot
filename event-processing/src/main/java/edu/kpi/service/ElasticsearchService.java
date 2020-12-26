@@ -2,9 +2,12 @@ package edu.kpi.service;
 
 import edu.kpi.model.Issue;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 public interface ElasticsearchService {
-    void saveIssue(Issue issue);
+    Mono<Void> saveIssue(Issue issue);
 
-    Flux<Issue> findIssuesByKeyword(String keyword);
+    Flux<Issue> findIssuesByKeywords(List<String> keywords);
 }

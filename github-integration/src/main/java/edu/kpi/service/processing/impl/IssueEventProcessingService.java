@@ -1,11 +1,11 @@
 package edu.kpi.service.processing.impl;
 
 import edu.kpi.client.EventProcessorClient;
-import edu.kpi.service.processing.utils.EventSink;
 import edu.kpi.converter.IssueEventConverter;
 import edu.kpi.model.IssueEvent;
 import edu.kpi.service.integration.IssueIntegrationService;
 import edu.kpi.service.processing.EventProcessingService;
+import edu.kpi.service.processing.utils.EventSink;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -57,7 +57,7 @@ public class IssueEventProcessingService implements EventProcessingService {
 
     private Mono<Void> processResponse(final IssueEvent event) {
 
-        if (event.isAwaitingTriage()) {
+        if (event.isAwaitingTriage() || event.getSimilarIssues().isEmpty()) {
 
             event.setLabels(Collections.singletonList("awaiting-triage"));
             return issueIntegrationService.addLabelsForIssue(event);
