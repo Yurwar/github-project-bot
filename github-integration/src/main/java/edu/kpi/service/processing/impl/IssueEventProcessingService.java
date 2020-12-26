@@ -58,7 +58,7 @@ public class IssueEventProcessingService implements EventProcessingService {
 
     private Mono<Void> processResponse(final IssueEvent event) {
 
-        if (event.isAwaitingTriage()) {
+        if (event.isAwaitingTriage() || event.getSimilarIssues().isEmpty()) {
 
             event.setLabels(Collections.singletonList("awaiting-triage"));
             return issueIntegrationService.addLabelsForIssue(event);
