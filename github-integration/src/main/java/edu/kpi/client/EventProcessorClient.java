@@ -1,5 +1,6 @@
 package edu.kpi.client;
 
+import edu.kpi.model.IssueCommentEvent;
 import edu.kpi.model.IssueEvent;
 import edu.kpi.model.PullRequestEvent;
 import edu.kpi.model.ReleaseEvent;
@@ -39,5 +40,12 @@ public class EventProcessorClient {
         return requester.route("processorController.release")
                 .data(eventFlux)
                 .retrieveFlux(ReleaseEvent.class);
+    }
+
+    public Flux<IssueCommentEvent> connectToIssueCommentProcessor(final Flux<IssueCommentEvent> eventFlux) {
+
+        return requester.route("processorController.issueComment")
+                .data(eventFlux)
+                .retrieveFlux(IssueCommentEvent.class);
     }
 }
