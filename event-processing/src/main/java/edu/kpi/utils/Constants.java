@@ -13,5 +13,9 @@ public final class Constants {
         public static final String PROJECT_COMMAND_NAME = "project";
         public static final String PROJECT_COMMAND_DESCRIPTION = "Put github project url to track your project";
         public static final String UNRECOGNIZED_COMMAND_MESSAGE = "Unrecognized command";
+
+        public static final String OPENED = "opened";
+        public static final String CLOSED = "closed";
+
     }
 }
