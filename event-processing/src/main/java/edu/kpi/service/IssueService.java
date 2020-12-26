@@ -1,10 +1,12 @@
 package edu.kpi.service;
 
+import edu.kpi.dto.IssueEvent;
 import edu.kpi.model.Issue;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface IssueService {
-    Flux<Issue> findSimilarIssuesInPast(Issue issue);
+    Flux<Issue> findSimilarIssue(IssueEvent issue);
 
-    void saveIssue(Issue issue);
+    Mono<Void> saveIssueEvent(IssueEvent issue);
 }
