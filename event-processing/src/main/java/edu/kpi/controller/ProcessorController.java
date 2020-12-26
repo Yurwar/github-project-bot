@@ -6,6 +6,7 @@ import edu.kpi.dto.PullRequestEvent;
 import edu.kpi.dto.ReleaseEvent;
 import edu.kpi.model.Issue;
 import edu.kpi.service.IssueService;
+import edu.kpi.utils.Constants;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
@@ -25,7 +26,7 @@ public class ProcessorController {
     public Flux<IssueEvent> connectIssue(Flux<IssueEvent> eventFlux) {
 
         return eventFlux
-                .filter(event -> "opened".equals(event.getAction()))
+                .filter(event -> Constants.OPENED.equals(event.getAction()))
                 .map(event -> Tuples.of(event, issueService.findSimilarIssue(event)))
                 .flatMap(tuple -> tuple.getT2()
                         .map(Issue::getNumber)
