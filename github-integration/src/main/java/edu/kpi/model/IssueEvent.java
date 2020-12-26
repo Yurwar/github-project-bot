@@ -12,6 +12,8 @@ import java.util.List;
 public class IssueEvent {
 
     private String id;
+    private String title;
+    private String body;
     private String installationId;
     private String action;
     private String owner;

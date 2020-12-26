@@ -15,9 +15,9 @@ import org.springframework.data.elasticsearch.annotations.Field;
 @Document(indexName = "github-issues")
 public class Issue {
     @Id
-    private int id;
+    private String id;
     @Field
-    private int number;
+    private String number;
     @Field
     private String repo;
     @Field
