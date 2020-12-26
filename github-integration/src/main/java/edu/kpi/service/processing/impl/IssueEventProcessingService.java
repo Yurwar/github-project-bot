@@ -1,17 +1,18 @@
 package edu.kpi.service.processing.impl;
 
 import edu.kpi.client.EventProcessorClient;
-import edu.kpi.service.processing.utils.EventSink;
 import edu.kpi.converter.IssueEventConverter;
 import edu.kpi.model.IssueEvent;
 import edu.kpi.service.integration.IssueIntegrationService;
 import edu.kpi.service.processing.EventProcessingService;
+import edu.kpi.service.processing.utils.EventSink;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class IssueEventProcessingService implements EventProcessingService {
@@ -64,11 +65,19 @@ public class IssueEventProcessingService implements EventProcessingService {
 
         } else {
 
-            event.setComment("Bot comment: this issue is duplicate. Please, check: "
-                    + String.join(", ", event.getSimilarIssues())
-                    + ".");
+            event.setLabels(Collections.singletonList("duplicate"));
+            event.setComment("Duplicate of: " + getSimilarIssuesString(event.getSimilarIssues()));
 
-            return issueIntegrationService.addCommentForIssue(event);
+            return issueIntegrationService.addCommentForIssue(event)
+                    .mergeWith(issueIntegrationService.addLabelsForIssue(event))
+                    .then();
         }
+    }
+
+    private String getSimilarIssuesString(final List<String> similarIssues) {
+
+        return similarIssues.stream()
+                .map(issue -> "#" + issue)
+                .collect(Collectors.joining(", "));
     }
 }

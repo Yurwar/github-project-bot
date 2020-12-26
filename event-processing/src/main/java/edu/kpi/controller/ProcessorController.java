@@ -8,7 +8,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 
-import java.util.Collections;
+import java.util.List;
 
 @Controller
 @MessageMapping("processorController")
@@ -20,7 +20,7 @@ public class ProcessorController {
         return eventFlux
                 .filter(event -> "opened".equals(event.getAction()))
                 .map(event -> {
-                    event.setSimilarIssues(Collections.singletonList("TEST"));
+                    event.setSimilarIssues(List.of("1", "2", "3"));
                     return event;
                 });
     }
