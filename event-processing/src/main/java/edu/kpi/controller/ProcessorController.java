@@ -1,15 +1,15 @@
 package edu.kpi.controller;
 
-import edu.kpi.dto.IssueCommentEvent;
-import edu.kpi.dto.IssueEvent;
-import edu.kpi.dto.PullRequestEvent;
-import edu.kpi.dto.ReleaseEvent;
+import edu.kpi.dto.*;
 import edu.kpi.model.Issue;
 import edu.kpi.service.IssueService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.util.function.Tuples;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static edu.kpi.utils.Constants.OPENED;
 
@@ -21,6 +21,17 @@ public class ProcessorController {
 
     public ProcessorController(IssueService issueService) {
         this.issueService = issueService;
+    }
+
+    @MessageMapping("fetchTweets")
+    public Flux<TweetData> fetchTweets(Flux<TweetData> dataFlux) {
+
+        return dataFlux;
+    }
+
+    @MessageMapping("keywords")
+    public Flux<List<String>> getKeywords() {
+        return Flux.just(new ArrayList<>());
     }
 
     @MessageMapping("issue")
