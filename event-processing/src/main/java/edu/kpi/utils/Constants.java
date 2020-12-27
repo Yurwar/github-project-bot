@@ -13,6 +13,9 @@ public final class Constants {
         public static final String PROJECT_COMMAND_NAME = "project";
         public static final String PROJECT_COMMAND_DESCRIPTION = "Put github project url to track your project";
         public static final String UNRECOGNIZED_COMMAND_MESSAGE = "Unrecognized command";
+        public static final String CHAT_ID_COMMAND_NAME = "chatid";
+        public static final String CHAT_ID_COMMAND_DESCRIPTION = "Use this command to discover your chat id";
+        public static final String CHAT_ID_COMMAND_MESSAGE = "Your chat id: ";
     }
 
     public static final String OPENED = "opened";
