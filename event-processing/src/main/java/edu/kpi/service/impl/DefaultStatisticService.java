@@ -3,6 +3,7 @@ package edu.kpi.service.impl;
 import edu.kpi.model.Event;
 import edu.kpi.repository.EventRepository;
 import edu.kpi.service.StatisticService;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuples;
 
@@ -10,6 +11,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
+import static edu.kpi.utils.Constants.CLOSED;
 import static edu.kpi.utils.Constants.OPENED;
 
 public class DefaultStatisticService implements StatisticService {
@@ -35,6 +37,12 @@ public class DefaultStatisticService implements StatisticService {
                         .map(closedEvent -> Duration.between(closedEvent.getEventTime(), tuple.getT1().getEventTime()).toMinutes()))
                 .collect(Collectors.toList())
                 .map(list -> list.stream().reduce(0L, Long::sum) / list.size());
+    }
+
+    @Override
+    public final Flux<Event> getUnclosedEvents(){
+        return eventRepository.findAll()
+                .filter(event -> !event.getAction().equals(CLOSED));
     }
 
     private boolean isEventHappenThisWeek(final Event event) {
