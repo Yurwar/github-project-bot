@@ -1,6 +1,6 @@
 package edu.kpi.service;
 
-import edu.kpi.model.Issue;
+import edu.kpi.model.index.Issue;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

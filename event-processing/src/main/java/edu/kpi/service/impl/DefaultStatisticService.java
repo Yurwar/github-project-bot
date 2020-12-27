@@ -1,9 +1,9 @@
 package edu.kpi.service.impl;
 
-import edu.kpi.model.Event;
-import edu.kpi.repository.EventRepository;
+import edu.kpi.model.data.IssueEvent;
+import edu.kpi.repository.data.IssueEventRepository;
 import edu.kpi.service.StatisticService;
-import org.jvnet.hk2.annotations.Service;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuples;
@@ -18,37 +18,38 @@ import static edu.kpi.utils.Constants.OPENED;
 @Service
 public class DefaultStatisticService implements StatisticService {
 
-    private final EventRepository eventRepository;
+    private final IssueEventRepository issueEventRepository;
 
-    public DefaultStatisticService(final EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
+    public DefaultStatisticService(final IssueEventRepository issueEventRepository) {
+        this.issueEventRepository = issueEventRepository;
     }
 
     @Override
     public final Mono<Long> getNumberOfIssuesByAction(final String action, final String repoId) {
-        return eventRepository.findAllByActionAndRepoId(action, repoId)
+        return issueEventRepository.findAllByActionAndRepoId(action, repoId)
+                .log()
                 .filter(this::isEventHappenThisWeek)
                 .count();
     }
 
     @Override
     public final Mono<Long> getAverageTimeByAction(final String action, final String repoId) {
-        return eventRepository.findAllByActionAndRepoId(OPENED, repoId)
-                .map(openEvent -> Tuples.of(openEvent, eventRepository.findByActionAndIssueIdAndRepoId(action, openEvent.getIssueId(), repoId)))
+        return issueEventRepository.findAllByActionAndRepoId(OPENED, repoId)
+                .map(openIssueEvent -> Tuples.of(openIssueEvent, issueEventRepository.findByActionAndIssueIdAndRepoId(action, openIssueEvent.getIssueNumber(), repoId)))
                 .flatMap(tuple -> tuple.getT2()
-                        .map(closedEvent -> Duration.between(closedEvent.getEventTime(), tuple.getT1().getEventTime()).toMinutes()))
+                        .map(closedIssueEvent -> Duration.between(closedIssueEvent.getEventTime(), tuple.getT1().getEventTime()).toMinutes()))
                 .collect(Collectors.toList())
                 .map(list -> list.stream().reduce(0L, Long::sum) / list.size());
     }
 
     @Override
-    public final Flux<Event> getUnclosedEvents() {
-        return eventRepository.findAll()
-                .filter(event -> !event.getAction().equals(CLOSED));
+    public final Flux<IssueEvent> getUnclosedEvents() {
+        return issueEventRepository.findAll()
+                .filter(issueEvent -> !issueEvent.getAction().equals(CLOSED));
     }
 
-    private boolean isEventHappenThisWeek(final Event event) {
-        return event.getEventTime().getDayOfYear() - LocalDateTime.now().getDayOfYear() < 7 &&
-                event.getEventTime().getYear() == LocalDateTime.now().getYear();
+    private boolean isEventHappenThisWeek(final IssueEvent issueEvent) {
+        return issueEvent.getEventTime().getDayOfYear() - LocalDateTime.now().getDayOfYear() < 7 &&
+                issueEvent.getEventTime().getYear() == LocalDateTime.now().getYear();
     }
 }

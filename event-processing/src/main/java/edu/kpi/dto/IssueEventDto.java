@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @Builder
 @ToString
-public class IssueEvent {
+public class IssueEventDto {
 
     private String id;
     private String title;
@@ -22,5 +22,4 @@ public class IssueEvent {
     private List<String> labels;
     private boolean awaitingTriage;
     private List<String> similarIssues;
-    private String comment;
 }
