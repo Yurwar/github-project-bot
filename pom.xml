@@ -27,6 +27,7 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <telegrambots.version>5.0.1</telegrambots.version>
+        <jjwt.version>0.9.1</jjwt.version>
     </properties>
 
     <dependencies>
