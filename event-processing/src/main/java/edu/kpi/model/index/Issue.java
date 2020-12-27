@@ -1,4 +1,4 @@
-package edu.kpi.model;
+package edu.kpi.model.index;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

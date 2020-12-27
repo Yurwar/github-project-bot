@@ -7,14 +7,10 @@ import lombok.ToString;
 @Data
 @Builder
 @ToString
-public class PullRequestEvent {
+public class ReleaseEventDto {
 
     private String installationId;
     private String action;
     private String owner;
     private String repo;
-    private String number;
-    private String sourceBranch;
-    private String destinationBranch;
-    private boolean merged;
 }
