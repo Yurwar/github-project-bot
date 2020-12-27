@@ -20,7 +20,7 @@ public class EventProcessorClient {
         this.requester = requester;
     }
 
-    public Flux<TweetData> send(final Flux<TweetData> dataFlux) {
+    public Flux<TweetData> streamTweets(final Flux<TweetData> dataFlux) {
 
         return requester.route("processorController.fetchTweets")
                 .data(dataFlux)
