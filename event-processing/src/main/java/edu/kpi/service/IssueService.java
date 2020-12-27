@@ -8,5 +8,5 @@ import reactor.core.publisher.Mono;
 public interface IssueService {
     Flux<Issue> findSimilarIssue(IssueEvent issue);
 
-    Mono<Void> saveIssueEvent(IssueEvent issue);
+    Mono<Issue> saveIssueEvent(IssueEvent issue);
 }

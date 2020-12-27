@@ -40,7 +40,7 @@ public class DefaultIssueService implements IssueService {
     }
 
     @Override
-    public Mono<Void> saveIssueEvent(IssueEvent issueEvent) {
+    public Mono<Issue> saveIssueEvent(IssueEvent issueEvent) {
         Issue issue = Issue.builder()
                 .id(issueEvent.getId())
                 .body(issueEvent.getBody())

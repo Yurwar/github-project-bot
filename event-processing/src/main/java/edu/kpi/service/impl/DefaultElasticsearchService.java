@@ -24,15 +24,15 @@ public class DefaultElasticsearchService implements ElasticsearchService {
     }
 
     @Override
-    public Mono<Void> saveIssue(Issue issue) {
-        return elasticsearchOperations.save(issue).then();
+    public Mono<Issue> saveIssue(Issue issue) {
+        return elasticsearchOperations.save(issue);
     }
 
     @Override
     public Flux<Issue> findIssuesByKeywords(List<String> keywords) {
-        Optional<Criteria> bodyCriteriaOpt = getConcatenatedFuzzyCriteria(keywords, "body", Criteria::or);
+        Optional<Criteria> bodyCriteriaOpt = getConcatenatedFuzzyCriteria(keywords, "body", Criteria::and);
 
-        Optional<Criteria> titleCriteriaOpt = getConcatenatedFuzzyCriteria(keywords, "title", Criteria::or);
+        Optional<Criteria> titleCriteriaOpt = getConcatenatedFuzzyCriteria(keywords, "title", Criteria::and);
 
         Optional<Criteria> multiCriteriaOpt = bodyCriteriaOpt.flatMap(bodyCriteria -> titleCriteriaOpt.map(bodyCriteria::or));
 
@@ -44,9 +44,9 @@ public class DefaultElasticsearchService implements ElasticsearchService {
                 .map(SearchHit::getContent);
     }
 
-    private Optional<Criteria> getConcatenatedFuzzyCriteria(List<String> keywords, String title, BinaryOperator<Criteria> acc) {
+    private Optional<Criteria> getConcatenatedFuzzyCriteria(List<String> keywords, String field, BinaryOperator<Criteria> acc) {
         return keywords.stream()
-                .map(keyword -> new Criteria(title).fuzzy(keyword))
+                .map(keyword -> new Criteria(field).contains(keyword))
                 .reduce(acc);
     }
 }
