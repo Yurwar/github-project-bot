@@ -15,7 +15,7 @@ import reactor.util.function.Tuples;
 
 import java.util.List;
 
-import static edu.kpi.utils.Constants.OPENED;
+import static edu.kpi.utils.Constants.*;
 
 
 @Controller
@@ -65,10 +65,20 @@ public class ProcessorController {
 
     @MessageMapping("issue")
     public Flux<IssueEventDto> connectIssue(Flux<IssueEventDto> issueEventFlux) {
+        Flux<IssueEventDto> savedIssueFlux = issueEventFlux.map(issueEvent -> {
+            Mono<IssueEvent> savedEvent = issueEventRepository
+                    .save(reversedIssueEventConvertor.convert(issueEvent));
+            return Tuples.of(issueEvent, savedEvent);
+        }).flatMap(tuple -> tuple.getT2()
+                .map(voidResponse -> tuple.getT1()));
 
-        return issueEventFlux
-                .filter(issueEvent -> OPENED.equals(issueEvent.getAction()))
+        Flux<IssueEventDto> shared = savedIssueFlux.share();
 
+        Flux<IssueEventDto> openedIssuesEvent = shared.filter(issueEvent -> OPENED.equals(issueEvent.getAction()));
+        Flux<IssueEventDto> closedIssuesEvent = shared.filter(issueEvent -> CLOSED.equals(issueEvent.getAction()));
+        Flux<IssueEventDto> commentedIssuesEvent = shared.filter(issueEvent -> COMMENTED.equals(issueEvent.getAction()));
+
+        return openedIssuesEvent
                 .map(issueEvent -> Tuples.of(issueEvent, issueService.findSimilarIssue(issueEvent)))
                 .flatMap(tuple -> tuple.getT2()
                         .map(Issue::getNumber)
@@ -80,14 +90,6 @@ public class ProcessorController {
                         }))
 
                 .map(issueEvent -> Tuples.of(issueEvent, issueService.saveIssueEvent(reversedIssueConvertor.convert(issueEvent))))
-                .flatMap(tuple -> tuple.getT2()
-                        .map(voidResponse -> tuple.getT1()))
-
-                .map(issueEvent -> {
-                    Mono<IssueEvent> savedEvent = issueEventRepository
-                            .save(reversedIssueEventConvertor.convert(issueEvent));
-                    return Tuples.of(issueEvent, savedEvent);
-                })
                 .flatMap(tuple -> tuple.getT2()
                         .map(voidResponse -> tuple.getT1()));
     }
