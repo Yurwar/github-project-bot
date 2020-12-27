@@ -3,6 +3,7 @@ package edu.kpi.service.impl;
 import edu.kpi.model.Event;
 import edu.kpi.repository.EventRepository;
 import edu.kpi.service.StatisticService;
+import org.jvnet.hk2.annotations.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuples;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 import static edu.kpi.utils.Constants.CLOSED;
 import static edu.kpi.utils.Constants.OPENED;
 
+@Service
 public class DefaultStatisticService implements StatisticService {
 
     private final EventRepository eventRepository;
@@ -23,14 +25,14 @@ public class DefaultStatisticService implements StatisticService {
     }
 
     @Override
-    public final Mono<Long> getNumberOfIssuesByAction(final String action, final long repoId) {
+    public final Mono<Long> getNumberOfIssuesByAction(final String action, final String repoId) {
         return eventRepository.findAllByActionAndRepoId(action, repoId)
                 .filter(this::isEventHappenThisWeek)
                 .count();
     }
 
     @Override
-    public final Mono<Long> getAverageTimeByAction(final String action, final long repoId) {
+    public final Mono<Long> getAverageTimeByAction(final String action, final String repoId) {
         return eventRepository.findAllByActionAndRepoId(OPENED, repoId)
                 .map(openEvent -> Tuples.of(openEvent, eventRepository.findByActionAndIssueIdAndRepoId(action, openEvent.getIssueId(), repoId)))
                 .flatMap(tuple -> tuple.getT2()
@@ -40,7 +42,7 @@ public class DefaultStatisticService implements StatisticService {
     }
 
     @Override
-    public final Flux<Event> getUnclosedEvents(){
+    public final Flux<Event> getUnclosedEvents() {
         return eventRepository.findAll()
                 .filter(event -> !event.getAction().equals(CLOSED));
     }
