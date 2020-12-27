@@ -1,7 +1,7 @@
 package edu.kpi.service.impl;
 
-import edu.kpi.dto.IssueEvent;
-import edu.kpi.model.Issue;
+import edu.kpi.dto.IssueEventDto;
+import edu.kpi.model.index.Issue;
 import edu.kpi.service.ElasticsearchService;
 import edu.kpi.service.IssueService;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ public class DefaultIssueService implements IssueService {
     }
 
     @Override
-    public Flux<Issue> findSimilarIssue(IssueEvent issue) {
+    public Flux<Issue> findSimilarIssue(IssueEventDto issue) {
         String title = issue.getTitle();
         String body = issue.getBody();
 
@@ -40,14 +40,7 @@ public class DefaultIssueService implements IssueService {
     }
 
     @Override
-    public Mono<Issue> saveIssueEvent(IssueEvent issueEvent) {
-        Issue issue = Issue.builder()
-                .id(issueEvent.getId())
-                .body(issueEvent.getBody())
-                .repo(issueEvent.getRepo())
-                .title(issueEvent.getTitle())
-                .number(issueEvent.getIssueNumber())
-                .build();
+    public Mono<Issue> saveIssueEvent(Issue issue) {
 
         return elasticsearchService.saveIssue(issue);
     }
