@@ -1,13 +1,11 @@
 package edu.kpi.controller;
 
-import edu.kpi.entities.TweetData;
+import edu.kpi.entities.TweetsEvent;
 import edu.kpi.service.OutboundTwitterService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
-
-import java.util.List;
 
 @RestController
 @RequestMapping
@@ -20,7 +18,7 @@ public class TestController {
     }
 
     @GetMapping("/test")
-    public Flux<List<TweetData>> getTweets() {
+    public Flux<TweetsEvent> getTweets() {
 
         return outboundTwitterService.fetchTweets();
     }

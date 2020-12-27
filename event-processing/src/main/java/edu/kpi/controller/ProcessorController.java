@@ -24,7 +24,13 @@ public class ProcessorController {
     }
 
     @MessageMapping("fetchTweets")
-    public Flux<TweetData> fetchTweets(Flux<TweetData> dataFlux) {
+    public Flux<TweetsEvent> fetchTweets(Flux<TweetsEvent> dataFlux) {
+
+        return dataFlux;
+    }
+
+    @MessageMapping("fetchStatistics")
+    public Flux<StatisticsData> fetchStatistics(Flux<StatisticsData> dataFlux) {
 
         return dataFlux;
     }

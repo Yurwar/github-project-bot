@@ -1,7 +1,8 @@
 package edu.kpi.client;
 
+import edu.kpi.dto.StatisticsData;
 import edu.kpi.dto.TagsData;
-import edu.kpi.entities.TweetData;
+import edu.kpi.entities.TweetsEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.stereotype.Service;
@@ -20,11 +21,18 @@ public class EventProcessorClient {
         this.requester = requester;
     }
 
-    public Flux<TweetData> streamTweets(final Flux<TweetData> dataFlux) {
+    public Flux<TweetsEvent> streamTweets(final Flux<TweetsEvent> dataFlux) {
 
         return requester.route("processorController.fetchTweets")
                 .data(dataFlux)
-                .retrieveFlux(TweetData.class);
+                .retrieveFlux(TweetsEvent.class);
+    }
+
+    public Flux<StatisticsData> streamStatistics(final Flux<StatisticsData> dataFlux) {
+
+        return requester.route("processorController.fetchStatistics")
+                .data(dataFlux)
+                .retrieveFlux(StatisticsData.class);
     }
 
     public Flux<List<String>> receiveKeywords() {
