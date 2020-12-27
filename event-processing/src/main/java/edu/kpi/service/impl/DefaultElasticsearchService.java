@@ -1,6 +1,6 @@
 package edu.kpi.service.impl;
 
-import edu.kpi.model.Issue;
+import edu.kpi.model.index.Issue;
 import edu.kpi.service.ElasticsearchService;
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;

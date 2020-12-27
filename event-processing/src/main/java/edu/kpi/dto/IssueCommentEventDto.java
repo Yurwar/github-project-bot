@@ -7,7 +7,7 @@ import lombok.ToString;
 @Data
 @Builder
 @ToString
-public class IssueCommentEvent {
+public class IssueCommentEventDto {
 
     private String installationId;
     private String action;

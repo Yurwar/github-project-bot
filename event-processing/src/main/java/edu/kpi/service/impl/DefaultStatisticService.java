@@ -1,52 +1,55 @@
 package edu.kpi.service.impl;
 
-import edu.kpi.model.Event;
-import edu.kpi.repository.EventRepository;
+import edu.kpi.model.data.IssueEvent;
+import edu.kpi.repository.data.IssueEventRepository;
 import edu.kpi.service.StatisticService;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuples;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 import static edu.kpi.utils.Constants.CLOSED;
 import static edu.kpi.utils.Constants.OPENED;
 
+@Service
 public class DefaultStatisticService implements StatisticService {
 
-    private final EventRepository eventRepository;
+    private final IssueEventRepository issueEventRepository;
 
-    public DefaultStatisticService(final EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
+    public DefaultStatisticService(final IssueEventRepository issueEventRepository) {
+        this.issueEventRepository = issueEventRepository;
     }
 
     @Override
-    public final Mono<Long> getNumberOfClosedIssues(long repoId) {
-        return eventRepository.findAll()
-                .filter(event -> event.getAction().equals(CLOSED))
-                .filter(event -> isRepoEventHappenThisWeek(event, repoId))
+    public final Mono<Long> getNumberOfIssuesByAction(final String action, final String repoId) {
+        return issueEventRepository.findAllByActionAndRepoId(action, repoId)
+                .log()
+                .filter(this::isEventHappenThisWeek)
                 .count();
     }
 
     @Override
-    public final Mono<Long> getNumberOfCreatedIssues(long repoId) {
-        return eventRepository.findAll()
-                .filter(event -> event.getAction().equals(OPENED))
-                .filter(event -> isRepoEventHappenThisWeek(event, repoId))
-                .count();
+    public final Mono<Long> getAverageTimeByAction(final String action, final String repoId) {
+        return issueEventRepository.findAllByActionAndRepoId(OPENED, repoId)
+                .map(openIssueEvent -> Tuples.of(openIssueEvent, issueEventRepository.findByActionAndIssueIdAndRepoId(action, openIssueEvent.getIssueNumber(), repoId)))
+                .flatMap(tuple -> tuple.getT2()
+                        .map(closedIssueEvent -> Duration.between(closedIssueEvent.getEventTime(), tuple.getT1().getEventTime()).toMinutes()))
+                .collect(Collectors.toList())
+                .map(list -> list.stream().reduce(0L, Long::sum) / list.size());
     }
 
     @Override
-    public final Mono<Long> getAverageCloseTime(long repoId) {
-        return Mono.never();
+    public final Flux<IssueEvent> getUnclosedEvents() {
+        return issueEventRepository.findAll()
+                .filter(issueEvent -> !issueEvent.getAction().equals(CLOSED));
     }
 
-    @Override
-    public final Mono<Long> getAverageResponseTime(long repoId) {
-        return Mono.never();
-    }
-
-    private boolean isRepoEventHappenThisWeek(final Event event, final long repoId) {
-        return event.getEventTime().getDayOfYear() - LocalDateTime.now().getDayOfYear() < 7 &&
-                event.getEventTime().getYear() == LocalDateTime.now().getYear() &&
-                event.getRepoId() == repoId;
+    private boolean isEventHappenThisWeek(final IssueEvent issueEvent) {
+        return issueEvent.getEventTime().getDayOfYear() - LocalDateTime.now().getDayOfYear() < 7 &&
+                issueEvent.getEventTime().getYear() == LocalDateTime.now().getYear();
     }
 }
