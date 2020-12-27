@@ -1,50 +1,33 @@
 package edu.kpi.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.kpi.dto.IssueLabelDto;
-import edu.kpi.service.integration.IssueLabelIntegrationService;
+import edu.kpi.service.processing.EventProcessingService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
+import java.util.Map;
 
 @RestController
+@Slf4j
 public class GithubWebhookController {
 
-    private final IssueLabelIntegrationService issueLabelIntegrationService;
-    private final ObjectMapper mapper;
+    private final Map<String, EventProcessingService> eventProcessingServiceMap;
 
-    public GithubWebhookController(final IssueLabelIntegrationService issueLabelIntegrationService) {
+    public GithubWebhookController(@Qualifier("eventProcessingServiceMap") final Map<String, EventProcessingService> eventProcessingServiceMap) {
 
-        this.issueLabelIntegrationService = issueLabelIntegrationService;
-        this.mapper = new ObjectMapper();
+        this.eventProcessingServiceMap = eventProcessingServiceMap;
     }
 
     @PostMapping
-    public void handleEvent(@RequestBody final String payload) {
+    public void handleEvent(@RequestBody final String payload, @RequestHeader("X-Github-Event") final String eventType) {
 
-        try {
+        log.info(eventType);
+        log.info(payload);
 
-            JsonNode event = mapper.readTree(payload);
-
-            final IssueLabelDto issueLabelDto = IssueLabelDto.builder()
-                    .installationId(event.get("installation").get("id").asText())
-                    .owner(event.get("sender").get("login").asText())
-                    .repo(event.get("repository").get("name").asText())
-                    .issueNumber(event.get("issue").get("number").asText())
-                    .labels(Collections.singletonList("Pretty Custom Label"))
-                    .build();
-
-
-            issueLabelIntegrationService.addLabelsForIssue(issueLabelDto);
-
-        } catch (JsonProcessingException e) {
-
-            e.printStackTrace();
-        }
+        eventProcessingServiceMap.get(eventType).processEvent(payload);
     }
 }
 

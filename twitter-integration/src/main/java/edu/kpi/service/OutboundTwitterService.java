@@ -4,87 +4,49 @@ import edu.kpi.client.EventProcessorClient;
 import edu.kpi.dto.StatisticsData;
 import edu.kpi.entities.Sentiment;
 import edu.kpi.entities.TweetData;
-import edu.kpi.util.TwitterUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import twitter4j.*;
+import twitter4j.Query;
+import twitter4j.Status;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
 public class OutboundTwitterService {
 
-    private final TwitterUtils twitterUtils;
+    private static final String FILTER_RETWEETS_FILTER_REPLIES = " -filter:retweets -filter:replies";
     private final StatisticsService statisticsService;
     private final EventProcessorClient eventProcessorClient;
+    private final Twitter twitter;
 
-    public OutboundTwitterService(StatisticsService statisticsService,
-                                  EventProcessorClient eventProcessorClient,
-                                  TwitterUtils twitterUtils) {
+    public OutboundTwitterService(StatisticsService statisticsService, EventProcessorClient eventProcessorClient, Twitter twitter) {
         this.statisticsService = statisticsService;
         this.eventProcessorClient = eventProcessorClient;
-        this.twitterUtils = twitterUtils;
+        this.twitter = twitter;
     }
 
-    public Mono<Flux<TweetData>> fetchTweets(int count) {
+    public Flux<List<TweetData>> fetchTweets(int count) {
 
-        Flux<List<String>> keywordsFlux = eventProcessorClient.receiveKeywords();
-
-        return keywordsFlux.map(keywords -> keywords.stream() //List<Flux<TweetData>> list for one keyword
-                .map(keyword -> {
-                    Twitter twitter = twitterUtils.getTwitterInstance();
-                    Query query = new Query(keyword.concat(" -filter:retweets -filter:replies"));
-                    query.setCount(count);
-                    query.setLocale("en");
-                    query.setLang("en");
-
-                    try {
-                        return Flux.fromStream(twitter
-                                .search(query)
-                                .getTweets()
-                                .stream())
-                                .map(this::trimTweet);
-                    } catch (TwitterException e) {
-                        log.error("Twitter Exception", e);
-                    }
-
-                    return Flux.<TweetData>empty();
-                })
-                .collect(Collectors.toList()))
-                .reduce((list1, list2) -> {
-                    List<Flux<TweetData>> res = new ArrayList<>();
-                    res.addAll(list1);
-                    res.addAll(list2);
-                    return res;
-                }).map(list -> {
-                    if (!list.isEmpty()) {
-                        Flux<TweetData> resultFlux = list.get(0);
-                        list.remove(0);
-                        for (Flux<TweetData> tweetDataFlux : list) {
-                            resultFlux = resultFlux.mergeWith(tweetDataFlux);
-                        }
-                        return resultFlux;
-                    } else {
-                        return Flux.empty();
-                    }
-                });
+        return eventProcessorClient.receiveKeywords()
+                .map(keywords -> keywords.stream()
+                        .flatMap(keyword -> searchTweets(createQuery(keyword, count)))
+                        .distinct()
+                        .collect(Collectors.toList()));
     }
 
+    //todo: search by list of keywords, suggestion: use flux join
     public Flux<StatisticsData> fetchStatisticsDaily(String keyword, int count) {
 
-        Twitter twitter = twitterUtils.getTwitterInstance();
-        Query query = new Query(keyword.concat(" -filter:retweets -filter:replies"));
-        query.setCount(count); //todo: mind removing count
-        query.setLocale("en");
-        query.setLang("en");
+        Query query = createQuery(keyword, count); //todo: continue minding about removing count
 
         return Flux.interval(Duration.ofDays(1)).map(instance -> {
             try {
@@ -125,4 +87,43 @@ public class OutboundTwitterService {
         return tweetData;
     }
 
+//    public Flux<TweetData> streamTweets(String keyword) {
+//
+//        TwitterStream stream = config.twitterStream();
+//        FilterQuery tweetFilterQuery = new FilterQuery();
+//        tweetFilterQuery.track(new String[]{keyword});
+//        tweetFilterQuery.language(new String[]{"en"});
+//
+//        return Flux.create(sink -> {
+//            stream.onStatus(tweet -> sink.next(this.trimTweet(tweet)));
+//            stream.onException(sink::error);
+//            stream.filter(tweetFilterQuery);
+//            sink.onCancel(stream::shutdown);
+//        });
+//    }
+
+    private Query createQuery(String keyword, int count) {
+
+        Query query = new Query(keyword.concat(FILTER_RETWEETS_FILTER_REPLIES));
+        query.setCount(count);
+        query.setLocale("en");
+        query.setLang("en");
+
+        return query;
+    }
+
+    private Stream<TweetData> searchTweets(Query query) {
+
+        try {
+            return twitter
+                    .search(query)
+                    .getTweets()
+                    .stream()
+                    .map(this::trimTweet);
+        } catch (TwitterException e) {
+            log.error("Twitter Exception", e);
+        }
+
+        return Stream.empty();
+    }
 }
