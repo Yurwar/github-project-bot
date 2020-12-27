@@ -52,7 +52,6 @@ public class IssueEventProcessingService implements EventProcessingService {
     private Flux<IssueEvent> getInputFlux() {
 
         return eventFlux
-                .log()
                 .filter(element -> acceptableIssueEvents.contains(element.getAction()));
     }
 

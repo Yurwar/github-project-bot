@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 public interface ElasticsearchService {
-    Mono<Void> saveIssue(Issue issue);
+    Mono<Issue> saveIssue(Issue issue);
 
     Flux<Issue> findIssuesByKeywords(List<String> keywords);
 }
