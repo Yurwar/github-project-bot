@@ -7,12 +7,14 @@ import edu.kpi.entities.TweetData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.util.function.Tuples;
 import twitter4j.*;
 
 import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,20 +27,31 @@ public class OutboundTwitterService {
     private final StatisticsService statisticsService;
     private final EventProcessorClient eventProcessorClient;
     private final Twitter twitter;
+    private final Flux<List<String>> keywordsFlux;
+    private final Flux<Integer> countsFlux;
 
     public OutboundTwitterService(StatisticsService statisticsService, EventProcessorClient eventProcessorClient, Twitter twitter) {
+
         this.statisticsService = statisticsService;
         this.eventProcessorClient = eventProcessorClient;
         this.twitter = twitter;
+
+        this.keywordsFlux = eventProcessorClient.receiveKeywords();
+        this.countsFlux = eventProcessorClient.receiveCounts();
     }
 
-    public Flux<List<TweetData>> fetchTweets(int count) {
+    public Flux<List<TweetData>> fetchTweets() {
 
-        return eventProcessorClient.receiveKeywords()
-                .map(keywords -> keywords.stream()
-                        .flatMap(keyword -> searchTweets(createQuery(keyword, count)))
+        return Flux.combineLatest(getKeywordsFluxWithInterval(), countsFlux, Tuples::of)
+                .map(tuple -> tuple.getT1().stream()
+                        .flatMap(keyword -> searchTweets(createQuery(keyword, tuple.getT2())))
                         .distinct()
                         .collect(Collectors.toList()));
+    }
+
+    private Flux<List<String>> getKeywordsFluxWithInterval() {
+
+        return Flux.combineLatest(keywordsFlux, Flux.interval(Duration.ofSeconds(5)), (keywords, interval) -> keywords);
     }
 
     //todo: search by list of keywords, suggestion: use flux join

@@ -30,8 +30,15 @@ public class ProcessorController {
     }
 
     @MessageMapping("keywords")
-    public Flux<List<String>> getKeywords() {
-        return Flux.just(new ArrayList<>());
+    public Flux<TagsData> getKeywords() {
+
+        return Flux.just(TagsData.builder().tags(List.of("Subaru", "BMW", "Mercedes-Benz")).build());
+    }
+
+    @MessageMapping("tweetsCount")
+    public Flux<Integer> getTweetsCount() {
+
+        return Flux.just(5);
     }
 
     @MessageMapping("issue")
