@@ -33,4 +33,10 @@ public class EventProcessorClient {
                 .retrieveFlux(TagsData.class)
                 .map(TagsData::getTags);
     }
+
+    public Flux<Integer> receiveCounts() {
+
+        return requester.route("processorController.tweetsCount")
+                .retrieveFlux(Integer.class);
+    }
 }

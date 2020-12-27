@@ -22,6 +22,6 @@ public class TestController {
     @GetMapping("/test")
     public Flux<List<TweetData>> getTweets() {
 
-        return outboundTwitterService.fetchTweets(5);
+        return outboundTwitterService.fetchTweets();
     }
 }
