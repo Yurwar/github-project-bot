@@ -7,10 +7,7 @@ import edu.kpi.entities.TweetData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import twitter4j.Query;
-import twitter4j.Status;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
+import twitter4j.*;
 
 import java.time.Duration;
 import java.util.Date;
@@ -23,6 +20,7 @@ import java.util.stream.Stream;
 @Slf4j
 public class OutboundTwitterService {
 
+    private static final int MAX_COUNT_PER_DAY = 10000;
     private static final String FILTER_RETWEETS_FILTER_REPLIES = " -filter:retweets -filter:replies";
     private final StatisticsService statisticsService;
     private final EventProcessorClient eventProcessorClient;
@@ -44,9 +42,9 @@ public class OutboundTwitterService {
     }
 
     //todo: search by list of keywords, suggestion: use flux join
-    public Flux<StatisticsData> fetchStatisticsDaily(String keyword, int count) {
+    public Flux<StatisticsData> fetchStatisticsDaily(String keyword) {
 
-        Query query = createQuery(keyword, count); //todo: continue minding about removing count
+        Query query = createQuery(keyword, MAX_COUNT_PER_DAY);
 
         return Flux.interval(Duration.ofDays(1)).map(instance -> {
             try {
@@ -65,6 +63,20 @@ public class OutboundTwitterService {
             }
         });
     }
+
+//    public Flux<TweetData> streamTweets(String keyword){
+//
+//        TwitterStream stream = config.twitterStream();
+//        FilterQuery tweetFilterQuery = new FilterQuery();
+//        tweetFilterQuery.track(new String[]{keyword});
+//        tweetFilterQuery.language(new String[]{"en"});
+//        return Flux.create(sink -> {
+//            stream.onStatus(status -> sink.next(this.trimTweet(status)));
+//            stream.onException(sink::error);
+//            stream.filter(tweetFilterQuery);
+//            sink.onCancel(stream::shutdown);
+//        });
+//    }
 
     private TweetData trimTweet(Status status) {
 
@@ -86,21 +98,6 @@ public class OutboundTwitterService {
         tweetData.setSentiment(statisticsService.analyze(text));
         return tweetData;
     }
-
-//    public Flux<TweetData> streamTweets(String keyword) {
-//
-//        TwitterStream stream = config.twitterStream();
-//        FilterQuery tweetFilterQuery = new FilterQuery();
-//        tweetFilterQuery.track(new String[]{keyword});
-//        tweetFilterQuery.language(new String[]{"en"});
-//
-//        return Flux.create(sink -> {
-//            stream.onStatus(tweet -> sink.next(this.trimTweet(tweet)));
-//            stream.onException(sink::error);
-//            stream.filter(tweetFilterQuery);
-//            sink.onCancel(stream::shutdown);
-//        });
-//    }
 
     private Query createQuery(String keyword, int count) {
 
