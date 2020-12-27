@@ -4,17 +4,20 @@ import edu.kpi.client.EventProcessorClient;
 import edu.kpi.dto.StatisticsData;
 import edu.kpi.entities.Sentiment;
 import edu.kpi.entities.TweetData;
+import edu.kpi.entities.TweetsEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.util.function.Tuples;
-import twitter4j.*;
+import twitter4j.Query;
+import twitter4j.Status;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
 
 import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,7 +25,10 @@ import java.util.stream.Stream;
 @Slf4j
 public class OutboundTwitterService {
 
+    public static final int INTERVAL_TWEETS = 5;
     private static final int MAX_COUNT_PER_DAY = 10000;
+    public static final int INTERVAL_STATISTICS = 86400;
+    public static final int MILLIS_PER_DAY = 86400000;
     private static final String FILTER_RETWEETS_FILTER_REPLIES = " -filter:retweets -filter:replies";
     private final StatisticsService statisticsService;
     private final EventProcessorClient eventProcessorClient;
@@ -38,58 +44,53 @@ public class OutboundTwitterService {
 
         this.keywordsFlux = eventProcessorClient.receiveKeywords();
         this.countsFlux = eventProcessorClient.receiveCounts();
+
+        eventProcessorClient.streamTweets(fetchTweets());
+        eventProcessorClient.streamStatistics(fetchStatisticsDaily());
     }
 
-    public Flux<List<TweetData>> fetchTweets() {
+    public Flux<TweetsEvent> fetchTweets() {
 
-        return Flux.combineLatest(getKeywordsFluxWithInterval(), countsFlux, Tuples::of)
+        return Flux.combineLatest(getKeywordsFluxWithInterval(INTERVAL_TWEETS), countsFlux, Tuples::of)
                 .map(tuple -> tuple.getT1().stream()
                         .flatMap(keyword -> searchTweets(createQuery(keyword, tuple.getT2())))
                         .distinct()
-                        .collect(Collectors.toList()));
+                        .collect(Collectors.toList()))
+                .map(TweetsEvent::new);
     }
 
-    private Flux<List<String>> getKeywordsFluxWithInterval() {
+    private Flux<List<String>> getKeywordsFluxWithInterval(int interval) {
 
-        return Flux.combineLatest(keywordsFlux, Flux.interval(Duration.ofSeconds(5)), (keywords, interval) -> keywords);
+        return Flux.combineLatest(keywordsFlux, Flux.interval(Duration.ofSeconds(interval)), (keywords, intervalEvent) -> keywords);
     }
 
-    //todo: search by list of keywords, suggestion: use flux join
-    public Flux<StatisticsData> fetchStatisticsDaily(String keyword) {
+    public Flux<StatisticsData> fetchStatisticsDaily() {
+
+        return getKeywordsFluxWithInterval(INTERVAL_STATISTICS)
+                .flatMap(keywordList ->
+                        Flux.fromStream(keywordList.stream())
+                                .map(this::createStatisticsData));
+    }
+
+    private StatisticsData createStatisticsData(String keyword) {
 
         Query query = createQuery(keyword, MAX_COUNT_PER_DAY);
 
-        return Flux.interval(Duration.ofDays(1)).map(instance -> {
-            try {
-                return new StatisticsData(twitter
-                        .search(query)
-                        .getTweets()
-                        .stream()
-                        .filter(status -> status
-                                .getCreatedAt()
-                                .after((new Date(System.currentTimeMillis() - 86400000))))
-                        .map(this::trimTweet)
-                        .collect(Collectors.groupingBy(data -> Sentiment.values()[data.getSentiment()], Collectors.counting())));
-            } catch (TwitterException e) {
-                e.printStackTrace();
-                return new StatisticsData(new HashMap<>());
-            }
-        });
+        try {
+            return new StatisticsData(twitter
+                    .search(query)
+                    .getTweets()
+                    .stream()
+                    .filter(status -> status
+                            .getCreatedAt()
+                            .after((new Date(System.currentTimeMillis() - MILLIS_PER_DAY))))
+                    .map(this::trimTweet)
+                    .collect(Collectors.groupingBy(data -> Sentiment.values()[data.getSentiment()], Collectors.counting())));
+        } catch (TwitterException e) {
+            e.printStackTrace();
+            return new StatisticsData(new HashMap<>());
+        }
     }
-
-//    public Flux<TweetData> streamTweets(String keyword){
-//
-//        TwitterStream stream = config.twitterStream();
-//        FilterQuery tweetFilterQuery = new FilterQuery();
-//        tweetFilterQuery.track(new String[]{keyword});
-//        tweetFilterQuery.language(new String[]{"en"});
-//        return Flux.create(sink -> {
-//            stream.onStatus(status -> sink.next(this.trimTweet(status)));
-//            stream.onException(sink::error);
-//            stream.filter(tweetFilterQuery);
-//            sink.onCancel(stream::shutdown);
-//        });
-//    }
 
     private TweetData trimTweet(Status status) {
 
