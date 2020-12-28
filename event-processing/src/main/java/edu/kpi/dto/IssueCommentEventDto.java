@@ -14,4 +14,6 @@ public class IssueCommentEventDto {
     private String owner;
     private String repo;
     private String body;
+    private String senderType;
+    private String login;
 }
