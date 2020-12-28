@@ -7,13 +7,12 @@ import edu.kpi.model.index.Issue;
 import edu.kpi.repository.data.IssueEventRepository;
 import edu.kpi.service.IssueService;
 import edu.kpi.service.NotificationService;
+import edu.kpi.service.TagsService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuples;
-
-import java.util.List;
 
 import static edu.kpi.utils.Constants.*;
 
@@ -24,17 +23,20 @@ public class ProcessorController {
     private final IssueService issueService;
     private final IssueEventRepository issueEventRepository;
     private final NotificationService notificationService;
+    private final TagsService tagsService;
     private final Convertor<IssueEventDto, IssueEvent> reversedIssueEventConvertor;
     private final Convertor<IssueEventDto, Issue> reversedIssueConvertor;
 
     public ProcessorController(IssueService issueService,
                                IssueEventRepository issueEventRepository,
                                NotificationService notificationService,
+                               TagsService tagsService,
                                Convertor<IssueEventDto, IssueEvent> reversedIssueEventConvertor,
                                Convertor<IssueEventDto, Issue> reversedIssueConvertor) {
         this.issueService = issueService;
         this.issueEventRepository = issueEventRepository;
         this.notificationService = notificationService;
+        this.tagsService = tagsService;
         this.reversedIssueEventConvertor = reversedIssueEventConvertor;
         this.reversedIssueConvertor = reversedIssueConvertor;
     }
@@ -54,7 +56,7 @@ public class ProcessorController {
     @MessageMapping("keywords")
     public Flux<TagsData> getKeywords() {
 
-        return Flux.just(TagsData.builder().tags(List.of("Subaru", "BMW", "Mercedes-Benz")).build());
+        return tagsService.getTagsData();
     }
 
     @MessageMapping("tweetsCount")
@@ -72,7 +74,10 @@ public class ProcessorController {
         }).flatMap(tuple -> tuple.getT2()
                 .map(voidResponse -> tuple.getT1()));
 
-        Flux<IssueEventDto> shared = savedIssueFlux.share();
+        Flux<IssueEventDto> notifiedIssueFlux = savedIssueFlux
+                .doOnNext(notificationService::issueNotify);
+
+        Flux<IssueEventDto> shared = notifiedIssueFlux.share();
 
         Flux<IssueEventDto> openedIssuesEvent = shared.filter(issueEvent -> OPENED.equals(issueEvent.getAction()));
         Flux<IssueEventDto> closedIssuesEvent = shared.filter(issueEvent -> CLOSED.equals(issueEvent.getAction()));
