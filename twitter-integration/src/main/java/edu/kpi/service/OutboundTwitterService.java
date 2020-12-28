@@ -5,6 +5,7 @@ import edu.kpi.dto.StatisticsData;
 import edu.kpi.entities.Sentiment;
 import edu.kpi.entities.TweetData;
 import edu.kpi.entities.TweetsEvent;
+import edu.kpi.mocks.TwitterMock;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -35,18 +36,24 @@ public class OutboundTwitterService {
     private final Twitter twitter;
     private final Flux<List<String>> keywordsFlux;
     private final Flux<Integer> countsFlux;
+    private final TwitterMock twitterMock;
 
-    public OutboundTwitterService(StatisticsService statisticsService, EventProcessorClient eventProcessorClient, Twitter twitter) {
+    public OutboundTwitterService(StatisticsService statisticsService, EventProcessorClient eventProcessorClient,
+                                  Twitter twitter, TwitterMock twitterMock) {
 
         this.statisticsService = statisticsService;
         this.eventProcessorClient = eventProcessorClient;
         this.twitter = twitter;
+        this.twitterMock = twitterMock;
 
         this.keywordsFlux = eventProcessorClient.receiveKeywords();
         this.countsFlux = eventProcessorClient.receiveCounts();
 
-        eventProcessorClient.streamTweets(fetchTweets());
-        eventProcessorClient.streamStatistics(fetchStatisticsDaily());
+//        eventProcessorClient.streamTweets(fetchTweets());
+//        eventProcessorClient.streamStatistics(fetchStatisticsDaily());
+
+        eventProcessorClient.streamTweets(fetchTweetMocks());
+        eventProcessorClient.streamStatistics(fetchStatisticMocksDaily());
     }
 
     public Flux<TweetsEvent> fetchTweets() {
@@ -54,6 +61,16 @@ public class OutboundTwitterService {
         return Flux.combineLatest(getKeywordsFluxWithInterval(INTERVAL_TWEETS), countsFlux, Tuples::of)
                 .map(tuple -> tuple.getT1().stream()
                         .flatMap(keyword -> searchTweets(createQuery(keyword, tuple.getT2())))
+                        .distinct()
+                        .collect(Collectors.toList()))
+                .map(TweetsEvent::new);
+    }
+
+    public Flux<TweetsEvent> fetchTweetMocks() {
+
+        return Flux.combineLatest(getKeywordsFluxWithInterval(INTERVAL_TWEETS), countsFlux, Tuples::of)
+                .map(tuple -> tuple.getT1().stream()
+                        .flatMap(this::getTweetMocks)
                         .distinct()
                         .collect(Collectors.toList()))
                 .map(TweetsEvent::new);
@@ -70,6 +87,14 @@ public class OutboundTwitterService {
                 .flatMap(keywordList ->
                         Flux.fromStream(keywordList.stream())
                                 .map(this::createStatisticsData));
+    }
+
+    public Flux<StatisticsData> fetchStatisticMocksDaily() {
+
+        return getKeywordsFluxWithInterval(INTERVAL_STATISTICS)
+                .flatMap(keywordList ->
+                        Flux.fromStream(keywordList.stream())
+                                .map(this::createStatisticMocksData));
     }
 
     private StatisticsData createStatisticsData(String keyword) {
@@ -90,6 +115,18 @@ public class OutboundTwitterService {
             e.printStackTrace();
             return new StatisticsData(new HashMap<>());
         }
+    }
+
+    private StatisticsData createStatisticMocksData(String keyword) {
+
+        return new StatisticsData(twitterMock.getMockStatuses(keyword)
+                .stream()
+                .filter(status -> status
+                        .getCreatedAt()
+                        .after((new Date(System.currentTimeMillis() - MILLIS_PER_DAY))))
+                .map(this::trimTweet)
+                .collect(Collectors.groupingBy(data -> Sentiment.values()[data.getSentiment()], Collectors.counting())));
+
     }
 
     private TweetData trimTweet(Status status) {
@@ -137,4 +174,12 @@ public class OutboundTwitterService {
 
         return Stream.empty();
     }
+
+    private Stream<TweetData> getTweetMocks(String keyword) {
+
+        return twitterMock.getMockStatuses(keyword)
+                .stream()
+                .map(this::trimTweet);
+    }
+
 }

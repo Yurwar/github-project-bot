@@ -20,6 +20,7 @@ public class TestController {
     @GetMapping("/test")
     public Flux<TweetsEvent> getTweets() {
 
-        return outboundTwitterService.fetchTweets();
+//        return outboundTwitterService.fetchTweets();
+        return outboundTwitterService.fetchTweetMocks();
     }
 }
