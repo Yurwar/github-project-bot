@@ -22,8 +22,9 @@ public class GithubProjectNotificationBot extends TelegramLongPollingCommandBot 
 
     public GithubProjectNotificationBot(BotCommand startCommand,
                                         BotCommand tagsCommand,
-                                        BotCommand projectCommand) {
-        registerAll(startCommand, tagsCommand, projectCommand);
+                                        BotCommand projectCommand,
+                                        BotCommand chatIdCommand) {
+        registerAll(startCommand, tagsCommand, projectCommand, chatIdCommand);
     }
 
     @Override
