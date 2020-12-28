@@ -21,13 +21,20 @@ import static edu.kpi.utils.Constants.*;
 public class DefaultStatisticService implements StatisticService {
 
     private final IssueEventRepository issueEventRepository;
+    private final Flux<Statistic> statisticFlux;
 
     public DefaultStatisticService(final IssueEventRepository issueEventRepository) {
         this.issueEventRepository = issueEventRepository;
+        this.statisticFlux = createStatistic("github-bot-test");//todo fix
     }
 
-    public final Flux<Statistic> createStatistic(final String repo) {
-        return Flux.interval(Duration.ofDays(7))
+    @Override
+    public Flux<Statistic> getStatisticFlux() {
+        return statisticFlux;
+    }
+
+    private Flux<Statistic> createStatistic(final String repo) {
+        return Flux.interval(Duration.ofSeconds(7))
                 .map(tick -> Statistic.builder().build())
                 .zipWith(getNumberOfIssuesByAction(OPENED, repo), (statistic, number) -> {
                     statistic.setNumberOfIssuesCreatedPerWeek(number);
