@@ -15,4 +15,7 @@ public interface IssueEventRepository extends R2dbcRepository<IssueEvent, Long> 
 
     @Query("SELECT * FROM issue_event ie WHERE ie.action = :action AND ie.repo = :repo AND ie.issue_number = :issueNumber")
     Mono<IssueEvent> findByActionAndIssueIdAndRepoId(String action, String issueNumber, String repo);
+
+    @Query("SELECT DISTINCT ie.repo FROM issue_event ie")
+    Flux<String> findRepositories();
 }
