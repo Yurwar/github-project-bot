@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Service
 public class IssueEventProcessingService implements EventProcessingService {
 
-    private static final List<String> acceptableIssueEvents = List.of("opened", "closed");
+    private static final List<String> acceptableIssueEvents = List.of("opened", "closed", "commented");
 
     private final EventSink<IssueEvent> eventSink;
     private final Flux<IssueEvent> eventFlux;

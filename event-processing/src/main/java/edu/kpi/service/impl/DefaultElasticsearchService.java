@@ -30,21 +30,32 @@ public class DefaultElasticsearchService implements ElasticsearchService {
 
     @Override
     public Flux<Issue> findIssuesByKeywords(List<String> keywords) {
-        Optional<Criteria> bodyCriteriaOpt = getConcatenatedFuzzyCriteria(keywords, "body", Criteria::and);
+        Optional<Criteria> bodyCriteriaOpt = getConcatenatedContainsCriteria(keywords, "body", Criteria::and);
 
-        Optional<Criteria> titleCriteriaOpt = getConcatenatedFuzzyCriteria(keywords, "title", Criteria::and);
+        Optional<Criteria> titleCriteriaOpt = getConcatenatedContainsCriteria(keywords, "title", Criteria::and);
 
         Optional<Criteria> multiCriteriaOpt = bodyCriteriaOpt.flatMap(bodyCriteria -> titleCriteriaOpt.map(bodyCriteria::or));
 
         Criteria multiCriteria = multiCriteriaOpt.orElseThrow();
 
-        Query query = new CriteriaQuery(multiCriteria);
+        return findIssuesByCriteriaQuery(multiCriteria);
+    }
+
+    @Override
+    public Flux<Issue> findIssuesByRepository(String repo) {
+        Criteria repoCriteria = new Criteria("repo").is(repo);
+
+        return findIssuesByCriteriaQuery(repoCriteria);
+    }
+
+    private Flux<Issue> findIssuesByCriteriaQuery(Criteria criteria) {
+        Query query = new CriteriaQuery(criteria);
+
         return elasticsearchOperations.search(query, Issue.class)
-                .log("ELASTICSEARCH")
                 .map(SearchHit::getContent);
     }
 
-    private Optional<Criteria> getConcatenatedFuzzyCriteria(List<String> keywords, String field, BinaryOperator<Criteria> acc) {
+    private Optional<Criteria> getConcatenatedContainsCriteria(List<String> keywords, String field, BinaryOperator<Criteria> acc) {
         return keywords.stream()
                 .map(keyword -> new Criteria(field).contains(keyword))
                 .reduce(acc);

@@ -10,4 +10,6 @@ public interface ElasticsearchService {
     Mono<Issue> saveIssue(Issue issue);
 
     Flux<Issue> findIssuesByKeywords(List<String> keywords);
+
+    Flux<Issue> findIssuesByRepository(String repo);
 }

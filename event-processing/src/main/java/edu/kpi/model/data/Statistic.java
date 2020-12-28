@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Statistic {
+    private String repo;
     private Long averageTimeBetweenCreateAndClose;
     private Long averageTimeBetweenCreateAndComment;
     private Long numberOfIssuesCreatedPerWeek;

@@ -17,7 +17,7 @@ public class TestController {
 
 
     @GetMapping("/test")
-    public Mono<Long> test() {
-        return statisticService.getNumberOfIssuesByAction("opened", "github-webhook-test-repo");
+    public Mono<String> test() {
+        return statisticService.getMostMentionedTopic("github-webhook-test-repo");
     }
 }
