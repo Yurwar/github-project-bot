@@ -103,7 +103,8 @@ public class DefaultStatisticService implements StatisticService {
         Comparator<Tuple2<String, Long>> sortFunction = Comparator.comparingLong(Tuple2::getT2);
 
         return elasticsearchService.findIssuesByRepository(repo)
-                .map(issue -> issue.getTitle() + issue.getBody())
+                .map(issue -> issue.getTitle() + " " + issue.getBody())
+                .map(String::toLowerCase)
                 .flatMap(fullDescription ->
                         Flux.fromStream(Arrays.stream(fullDescription.split("\\W+")).filter(word -> !word.isBlank())))
                 .filter(word -> word.length() > 3)
