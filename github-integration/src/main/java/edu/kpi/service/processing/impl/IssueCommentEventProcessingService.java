@@ -7,6 +7,9 @@ import edu.kpi.service.processing.EventProcessingService;
 import edu.kpi.service.processing.utils.EventSink;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
 
 import java.util.List;
 
@@ -38,6 +41,7 @@ public class IssueCommentEventProcessingService implements EventProcessingServic
     private void establishConnection() {
 
         eventProcessorClient.connectToIssueCommentProcessor(getInputFlux())
+                .retryWhen(Retry.backoff(10, Duration.ofMillis(500)))
                 .subscribe();
     }
 

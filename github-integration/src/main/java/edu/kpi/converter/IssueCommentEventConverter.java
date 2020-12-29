@@ -24,6 +24,7 @@ public class IssueCommentEventConverter extends CommonEventConverter {
                 .login(event.get("sender").get("login").asText())
                 .senderUrl(event.get("sender").get("html_url").asText())
                 .commentUrl(event.get("comment").get("html_url").asText())
+                .issueNumber(event.get("issue").get("number").asText())
                 .build();
     }
 }

@@ -18,4 +18,5 @@ public class IssueCommentEventDto {
     private String login;
     private String senderUrl;
     private String commentUrl;
+    private String issueNumber;
 }
