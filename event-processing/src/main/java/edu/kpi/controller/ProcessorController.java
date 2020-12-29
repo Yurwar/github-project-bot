@@ -84,8 +84,7 @@ public class ProcessorController {
                     .save(reversedIssueEventConverter.convert(issueEvent));
             return Tuples.of(issueEvent, savedEvent);
         }).flatMap(tuple -> tuple.getT2()
-                .map(voidResponse -> tuple.getT1()))
-                .doOnNext(notificationService::issueNotify);
+                .map(voidResponse -> tuple.getT1()));
 
         Flux<IssueEventDto> notifiedIssueFlux = savedIssueFlux
                 .doOnNext(notificationService::issueNotify);

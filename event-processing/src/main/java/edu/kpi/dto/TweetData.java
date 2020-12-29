@@ -28,6 +28,7 @@ public class TweetData {
                      String userName,
                      String screenName,
                      String profileImageUrl) {
+
         this.id = id;
         this.creationTime = creationTime;
         this.originalText = originalText;
