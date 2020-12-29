@@ -12,4 +12,6 @@ public interface NotificationService {
     void releaseNotify(ReleaseEventDto releaseEvent);
 
     void tweetNotify(TweetData tweet);
+
+    void tweetStatisticNotify(StatisticsData statisticsData);
 }

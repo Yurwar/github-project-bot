@@ -50,15 +50,19 @@ public class ProcessorController {
     }
 
     @MessageMapping("fetchTweets")
-    public Flux<TweetsEvent> fetchTweets(Flux<TweetsEvent> dataFlux) {
+    public Flux<TweetData> fetchTweets(Flux<TweetData> dataFlux) {
 
-        return dataFlux;
+        return dataFlux
+                .log()
+                .doOnNext(notificationService::tweetNotify);
     }
 
     @MessageMapping("fetchStatistics")
     public Flux<StatisticsData> fetchStatistics(Flux<StatisticsData> dataFlux) {
 
-        return dataFlux;
+        return dataFlux
+                .log()
+                .doOnNext(notificationService::tweetStatisticNotify);
     }
 
     @MessageMapping("keywords")

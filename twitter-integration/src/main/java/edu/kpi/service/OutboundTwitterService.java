@@ -23,9 +23,9 @@ import java.util.stream.Stream;
 @Slf4j
 public class OutboundTwitterService {
 
-    public static final int INTERVAL_TWEETS = 5;
+    public static final Duration INTERVAL_TWEETS = Duration.ofSeconds(5);
     private static final int MAX_COUNT_PER_DAY = 10000;
-    public static final int INTERVAL_STATISTICS = 86400;
+    public static final Duration INTERVAL_STATISTICS = Duration.ofDays(1);
     public static final int MILLIS_PER_DAY = 86400000;
     private static final String FILTER_RETWEETS_FILTER_REPLIES = " -filter:retweets -filter:replies";
     private final StatisticsService statisticsService;
@@ -46,21 +46,16 @@ public class OutboundTwitterService {
         this.keywordsFlux = eventProcessorClient.receiveKeywords();
         this.countsFlux = eventProcessorClient.receiveCounts();
 
-        eventProcessorClient.streamTweets(fetchTweets()).subscribe();
-        eventProcessorClient.streamStatistics(fetchStatisticsDaily()).subscribe();
-
-//        eventProcessorClient.streamTweets(fetchTweetMocks()).subscribe();
-//        eventProcessorClient.streamStatistics(fetchStatisticMocksDaily()).subscribe();
+        eventProcessorClient.streamTweets(fetchTweets());
+        eventProcessorClient.streamStatistics(fetchStatisticsDaily());
     }
 
-    public Flux<TweetsEvent> fetchTweets() {
-
-        return Flux.combineLatest(getKeywordsFluxWithInterval(INTERVAL_TWEETS), countsFlux, Tuples::of)
-                .map(tuple -> tuple.getT1().stream()
-                        .flatMap(keyword -> searchTweets(createQuery(keyword, tuple.getT2())))
+    public Flux<TweetData> fetchTweets() {
+        return getKeywordsFluxWithInterval(INTERVAL_TWEETS)
+                .flatMapIterable(keywords -> keywords.stream()
+                        .flatMap(keyword -> searchTweets(createQuery(keyword, 5)))
                         .distinct()
-                        .collect(Collectors.toList()))
-                .map(TweetsEvent::new);
+                        .collect(Collectors.toList()));
     }
 
     public Flux<TweetsEvent> fetchTweetMocks() {
@@ -73,9 +68,9 @@ public class OutboundTwitterService {
                 .map(TweetsEvent::new);
     }
 
-    private Flux<List<String>> getKeywordsFluxWithInterval(int interval) {
+    private Flux<List<String>> getKeywordsFluxWithInterval(Duration interval) {
 
-        return Flux.combineLatest(keywordsFlux, Flux.interval(Duration.ofSeconds(interval)), (keywords, intervalEvent) -> keywords);
+        return Flux.combineLatest(keywordsFlux, Flux.interval(interval), (keywords, intervalEvent) -> keywords);
     }
 
     public Flux<StatisticsData> fetchStatisticsDaily() {

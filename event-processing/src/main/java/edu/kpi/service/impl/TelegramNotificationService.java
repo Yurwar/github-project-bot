@@ -66,7 +66,12 @@ public class TelegramNotificationService implements NotificationService {
 
     @Override
     public void tweetNotify(TweetData tweet) {
-        throw new UnsupportedOperationException();
+        executeSendMessage(tweet.toString());
+    }
+
+    @Override
+    public void tweetStatisticNotify(StatisticsData statisticsData) {
+        executeSendMessage(statisticsData.toString());
     }
 
     private void executeSendMessage(String text) {
