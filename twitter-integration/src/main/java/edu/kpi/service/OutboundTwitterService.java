@@ -10,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.util.function.Tuples;
-import twitter4j.Query;
-import twitter4j.Status;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
+import twitter4j.*;
 
 import java.time.Duration;
 import java.util.Date;
@@ -49,11 +46,11 @@ public class OutboundTwitterService {
         this.keywordsFlux = eventProcessorClient.receiveKeywords();
         this.countsFlux = eventProcessorClient.receiveCounts();
 
-//        eventProcessorClient.streamTweets(fetchTweets());
-//        eventProcessorClient.streamStatistics(fetchStatisticsDaily());
+        eventProcessorClient.streamTweets(fetchTweets()).subscribe();
+        eventProcessorClient.streamStatistics(fetchStatisticsDaily()).subscribe();
 
-        eventProcessorClient.streamTweets(fetchTweetMocks());
-        eventProcessorClient.streamStatistics(fetchStatisticMocksDaily());
+//        eventProcessorClient.streamTweets(fetchTweetMocks()).subscribe();
+//        eventProcessorClient.streamStatistics(fetchStatisticMocksDaily()).subscribe();
     }
 
     public Flux<TweetsEvent> fetchTweets() {

@@ -11,6 +11,7 @@ import java.net.URI;
 
 @Configuration
 public class EventProcessorClientConfiguration {
+
     private final String schema;
     private final String host;
     private final String port;
@@ -18,6 +19,7 @@ public class EventProcessorClientConfiguration {
     public EventProcessorClientConfiguration(@Value("${event-processing.server.scheme}") String schema,
                                              @Value("${event-processing.server.host}") String host,
                                              @Value("${event-processing.server.port}") String port) {
+
         this.schema = schema;
         this.host = host;
         this.port = port;
@@ -25,6 +27,7 @@ public class EventProcessorClientConfiguration {
 
     @Bean
     RSocketRequester eventProcessorSocketRequester(RSocketRequester.Builder builder, RSocketStrategies strategies) {
+
         return builder
                 .setupRoute("twitter-integration")
                 .rsocketStrategies(strategies)

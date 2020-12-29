@@ -24,6 +24,7 @@ public class StatusMock implements Status {
 
     @Override
     public Date getCreatedAt() {
+
         return Date.from(LocalDateTime.now()
                 .minusHours(RANDOM.nextInt(BOUND_HOURS))
                 .atZone(ZoneId.systemDefault())
@@ -32,14 +33,18 @@ public class StatusMock implements Status {
 
     @Override
     public long getId() {
+
         return RANDOM.nextInt(BOUND_ID);
     }
 
     @Override
     public String getText() {
+
         try (BufferedInputStream ignored = new BufferedInputStream(new FileInputStream(TWEETS_FILENAME))) {
+
             List<String> tweetTexts = Files.lines(Path.of(TWEETS_FILENAME)).collect(Collectors.toList());
             List<String> reactions = Files.lines(Path.of(REACTIONS_FILENAME)).collect(Collectors.toList());
+
             return "" + tweetTexts.get(RANDOM.nextInt(tweetTexts.size())) + reactions.get(RANDOM.nextInt(reactions.size()));
         } catch (IOException e) {
             e.printStackTrace();

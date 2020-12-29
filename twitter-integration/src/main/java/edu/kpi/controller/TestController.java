@@ -14,6 +14,7 @@ public class TestController {
     private final OutboundTwitterService outboundTwitterService;
 
     public TestController(OutboundTwitterService outboundTwitterService) {
+
         this.outboundTwitterService = outboundTwitterService;
     }
 

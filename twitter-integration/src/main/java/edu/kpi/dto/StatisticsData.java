@@ -1,10 +1,13 @@
 package edu.kpi.dto;
 
 import edu.kpi.entities.Sentiment;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.Map;
 
+@Data
 public class StatisticsData {
 
     Date dateOfMetrics;

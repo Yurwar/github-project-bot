@@ -25,13 +25,17 @@ public class UserMock implements User {
 
     @Override
     public long getId() {
+
         return RANDOM.nextInt(BOUND_ID);
     }
 
     @Override
     public String getName() {
+
         try (BufferedInputStream ignored = new BufferedInputStream(new FileInputStream(FILENAME))) {
+
             List<String> names = Files.lines(Path.of(FILENAME)).collect(Collectors.toList());
+
             return names.get(RANDOM.nextInt(names.size()));
         } catch (IOException e) {
             e.printStackTrace();
@@ -46,6 +50,7 @@ public class UserMock implements User {
 
     @Override
     public String getScreenName() {
+
         return "User" + getId();
     }
 

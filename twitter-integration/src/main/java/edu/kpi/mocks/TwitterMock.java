@@ -14,12 +14,14 @@ public class TwitterMock {
     public List<Status> mockStatuses;
 
     public TwitterMock() {
+
         this.mockStatuses = IntStream.range(0, STATUSES_COUNT)
                 .mapToObj(x -> new StatusMock())
                 .collect(Collectors.toList());
     }
 
     public List<Status> getMockStatuses(String keyword) {
+
         return mockStatuses.stream()
                 .filter(status -> status.getText().contains(keyword))
                 .collect(Collectors.toList());
