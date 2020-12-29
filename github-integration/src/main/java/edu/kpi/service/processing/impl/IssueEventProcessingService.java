@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Service
 public class IssueEventProcessingService implements EventProcessingService {
 
-    private static final List<String> acceptableIssueEvents = List.of("opened", "closed");
+    private static final List<String> acceptableIssueEvents = List.of("opened", "closed", "labeled");
 
     private final EventSink<IssueEvent> eventSink;
     private final Flux<IssueEvent> eventFlux;
@@ -52,7 +52,8 @@ public class IssueEventProcessingService implements EventProcessingService {
     private Flux<IssueEvent> getInputFlux() {
 
         return eventFlux
-                .filter(element -> acceptableIssueEvents.contains(element.getAction()));
+                .filter(element -> acceptableIssueEvents.contains(element.getAction()))
+                .log();
     }
 
     private Mono<Void> processResponse(final IssueEvent event) {

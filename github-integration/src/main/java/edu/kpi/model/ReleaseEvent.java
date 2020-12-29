@@ -13,4 +13,9 @@ public class ReleaseEvent {
     private String action;
     private String owner;
     private String repo;
+    private String url;
+    private String tag;
+    private String branch;
+    private String name;
+    private String body;
 }

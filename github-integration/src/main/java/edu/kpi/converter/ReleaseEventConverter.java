@@ -19,6 +19,11 @@ public class ReleaseEventConverter extends CommonEventConverter {
                 .action(event.get("action").asText())
                 .owner(event.get("repository").get("owner").get("login").asText())
                 .repo(event.get("repository").get("name").asText())
+                .url(event.get("release").get("html_url").asText())
+                .tag(event.get("release").get("tag_name").asText())
+                .branch(event.get("release").get("target_commitish").asText())
+                .name(event.get("release").get("name").asText())
+                .body(event.get("release").get("body").asText())
                 .build();
     }
 }

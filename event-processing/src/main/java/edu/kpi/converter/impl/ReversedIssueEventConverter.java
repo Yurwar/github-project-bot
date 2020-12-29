@@ -1,6 +1,6 @@
-package edu.kpi.convertor.impl;
+package edu.kpi.converter.impl;
 
-import edu.kpi.convertor.Convertor;
+import edu.kpi.converter.Converter;
 import edu.kpi.dto.IssueEventDto;
 import edu.kpi.model.data.IssueEvent;
 import org.springframework.stereotype.Component;
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 @Component
-public class ReversedIssueEventConvertor implements Convertor<IssueEventDto, IssueEvent> {
+public class ReversedIssueEventConverter implements Converter<IssueEventDto, IssueEvent> {
 
     @Override
     public IssueEvent convert(IssueEventDto fromObject) {

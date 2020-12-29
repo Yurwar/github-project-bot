@@ -8,8 +8,12 @@ import edu.kpi.service.processing.utils.EventSink;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
+
 @Service
 public class IssueCommentEventProcessingService implements EventProcessingService {
+
+    private static final List<String> acceptableIssueCommentEvents = List.of("created");
 
     private final EventSink<IssueCommentEvent> eventSink;
     private final Flux<IssueCommentEvent> eventFlux;
@@ -39,6 +43,8 @@ public class IssueCommentEventProcessingService implements EventProcessingServic
 
     private Flux<IssueCommentEvent> getInputFlux() {
 
-        return eventFlux.log();
+        return eventFlux
+                .filter(element -> acceptableIssueCommentEvents.contains(element.getAction()))
+                .log();
     }
 }

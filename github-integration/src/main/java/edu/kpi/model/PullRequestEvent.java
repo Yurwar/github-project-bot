@@ -17,4 +17,8 @@ public class PullRequestEvent {
     private String sourceBranch;
     private String destinationBranch;
     private boolean merged;
+    private String title;
+    private String url;
+    private String authorLogin;
+    private String authorUrl;
 }
