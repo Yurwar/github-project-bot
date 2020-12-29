@@ -2,7 +2,6 @@ package edu.kpi.service;
 
 import edu.kpi.client.EventProcessorClient;
 import edu.kpi.dto.StatisticsData;
-import edu.kpi.entities.Sentiment;
 import edu.kpi.entities.TweetData;
 import edu.kpi.entities.TweetsEvent;
 import edu.kpi.mocks.TwitterMock;
@@ -11,11 +10,14 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.util.function.Tuples;
 import twitter4j.*;
+import twitter4j.conf.ConfigurationBuilder;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,17 +25,26 @@ import java.util.stream.Stream;
 @Slf4j
 public class OutboundTwitterService {
 
-    public static final Duration INTERVAL_TWEETS = Duration.ofSeconds(5);
-    private static final int MAX_COUNT_PER_DAY = 10000;
-    public static final Duration INTERVAL_STATISTICS = Duration.ofDays(1);
-    public static final int MILLIS_PER_DAY = 86400000;
+    private static final Duration INTERVAL_TWEETS = Duration.ofSeconds(5);
+    private static final Duration SEARCH_STATISTICS_PERIOD = Duration.ofDays(1);
+    private static final Duration SEND_STATISTICS_INTERVAL = Duration.ofSeconds(30);
+    private static final int MAX_COUNT_PER_DAY = 100;
+    private static final int MILLIS_PER_DAY = 86400000;
+
+    private static final String LOCALE_EN = "en";
     private static final String FILTER_RETWEETS_FILTER_REPLIES = " -filter:retweets -filter:replies";
+    private static final String ENV_CONSUMER_KEY = System.getenv("twitter4j.oauth.consumerKey");
+    private static final String ENV_CONSUMER_SECRET = System.getenv("twitter4j.oauth.consumerSecret");
+    private static final String ENV_ACCESS_TOKEN = System.getenv("twitter4j.oauth.accessToken");
+    private static final String ENV_ACCESS_TOKEN_SECRET = System.getenv("twitter4j.oauth.accessTokenSecret");
+
+    private TwitterStream twitterStream;
     private final StatisticsService statisticsService;
     private final EventProcessorClient eventProcessorClient;
     private final Twitter twitter;
+    private final TwitterMock twitterMock;
     private final Flux<List<String>> keywordsFlux;
     private final Flux<Integer> countsFlux;
-    private final TwitterMock twitterMock;
 
     public OutboundTwitterService(StatisticsService statisticsService, EventProcessorClient eventProcessorClient,
                                   Twitter twitter, TwitterMock twitterMock) {
@@ -46,16 +57,27 @@ public class OutboundTwitterService {
         this.keywordsFlux = eventProcessorClient.receiveKeywords();
         this.countsFlux = eventProcessorClient.receiveCounts();
 
-        eventProcessorClient.streamTweets(fetchTweets());
+        eventProcessorClient.streamTweets(streamTweets());
         eventProcessorClient.streamStatistics(fetchStatisticsDaily());
     }
 
-    public Flux<TweetData> fetchTweets() {
-        return getKeywordsFluxWithInterval(INTERVAL_TWEETS)
-                .flatMapIterable(keywords -> keywords.stream()
-                        .flatMap(keyword -> searchTweets(createQuery(keyword, 5)))
-                        .distinct()
-                        .collect(Collectors.toList()));
+    public Flux<TweetData> streamTweets() {
+
+        return keywordsFlux
+                .flatMap(keywords -> {
+                    FilterQuery tweetFilterQuery = new FilterQuery();
+                    tweetFilterQuery.track(keywords.toArray(new String[0]));
+                    tweetFilterQuery.language(LOCALE_EN);
+
+                    TwitterStream twitterStream = getTwitterStream();
+
+                    return Flux.create(sink -> {
+                        twitterStream.onStatus(status -> sink.next(this.trimTweet(status)));
+                        twitterStream.onException(sink::error);
+                        twitterStream.filter(tweetFilterQuery);
+                        sink.onCancel(twitterStream::shutdown);
+                    });
+                });
     }
 
     public Flux<TweetsEvent> fetchTweetMocks() {
@@ -75,34 +97,26 @@ public class OutboundTwitterService {
 
     public Flux<StatisticsData> fetchStatisticsDaily() {
 
-        return getKeywordsFluxWithInterval(INTERVAL_STATISTICS)
+        return getKeywordsFluxWithInterval(SEND_STATISTICS_INTERVAL)
                 .flatMap(keywordList ->
                         Flux.fromStream(keywordList.stream())
-                                .map(this::createStatisticsData));
+                                .map(keywords -> createStatisticsData(keywords, SEARCH_STATISTICS_PERIOD)));
     }
 
-    public Flux<StatisticsData> fetchStatisticMocksDaily() {
+    private StatisticsData createStatisticsData(String keyword, Duration duration) {
 
-        return getKeywordsFluxWithInterval(INTERVAL_STATISTICS)
-                .flatMap(keywordList ->
-                        Flux.fromStream(keywordList.stream())
-                                .map(this::createStatisticMocksData));
-    }
-
-    private StatisticsData createStatisticsData(String keyword) {
-
-        Query query = createQuery(keyword, MAX_COUNT_PER_DAY);
+        Query query = createQuery(keyword, MAX_COUNT_PER_DAY, duration);
 
         try {
-            return new StatisticsData(twitter
+            List<Status> tweets = twitter
                     .search(query)
-                    .getTweets()
+                    .getTweets();
+
+            StatisticsData statisticsData = new StatisticsData(tweets
                     .stream()
-                    .filter(status -> status
-                            .getCreatedAt()
-                            .after((new Date(System.currentTimeMillis() - MILLIS_PER_DAY))))
                     .map(this::trimTweet)
-                    .collect(Collectors.groupingBy(data -> Sentiment.values()[data.getSentiment()], Collectors.counting())));
+                    .collect(Collectors.groupingBy(data -> "" + data.getSentiment(), Collectors.counting())));
+            return statisticsData;
         } catch (TwitterException e) {
             e.printStackTrace();
             return new StatisticsData(new HashMap<>());
@@ -117,8 +131,7 @@ public class OutboundTwitterService {
                         .getCreatedAt()
                         .after((new Date(System.currentTimeMillis() - MILLIS_PER_DAY))))
                 .map(this::trimTweet)
-                .collect(Collectors.groupingBy(data -> Sentiment.values()[data.getSentiment()], Collectors.counting())));
-
+                .collect(Collectors.groupingBy(data -> "" + data.getSentiment(), Collectors.counting())));
     }
 
     private TweetData trimTweet(Status status) {
@@ -142,12 +155,15 @@ public class OutboundTwitterService {
         return tweetData;
     }
 
-    private Query createQuery(String keyword, int count) {
+    private Query createQuery(String keyword, int count, Duration duration) {
 
         Query query = new Query(keyword.concat(FILTER_RETWEETS_FILTER_REPLIES));
         query.setCount(count);
         query.setLocale("en");
         query.setLang("en");
+        query.since(LocalDateTime.now()
+                .minus(duration)
+                .toString());
 
         return query;
     }
@@ -174,4 +190,53 @@ public class OutboundTwitterService {
                 .map(this::trimTweet);
     }
 
+    private ConfigurationBuilder getConfigurationBuilder() {
+
+        if (Objects.isNull(ENV_CONSUMER_KEY) ||
+                Objects.isNull(ENV_CONSUMER_SECRET) ||
+                Objects.isNull(ENV_ACCESS_TOKEN) ||
+                Objects.isNull(ENV_ACCESS_TOKEN_SECRET)) {
+
+            log.error("Twitter4j properties not configured properly!");
+            throw new RuntimeException("Configuration error: Twitter4j properties not configured properly!");
+        }
+
+        ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
+        configurationBuilder
+                .setOAuthConsumerKey(ENV_CONSUMER_KEY)
+                .setOAuthConsumerSecret(ENV_CONSUMER_SECRET)
+                .setOAuthAccessToken(ENV_ACCESS_TOKEN)
+                .setOAuthAccessTokenSecret(ENV_ACCESS_TOKEN_SECRET);
+
+        return configurationBuilder;
+    }
+
+    public TwitterStreamFactory getTwitterStreamFactory() {
+
+        ConfigurationBuilder configurationBuilder = getConfigurationBuilder();
+        return new TwitterStreamFactory(configurationBuilder.build());
+    }
+
+    public TwitterStream getTwitterStream() {
+
+        if (Objects.isNull(this.twitterStream))
+            this.twitterStream = getTwitterStreamFactory().getInstance();
+        return this.twitterStream;
+    }
+
+    public Flux<TweetData> fetchTweets() {
+        return getKeywordsFluxWithInterval(INTERVAL_TWEETS)
+                .flatMapIterable(keywords -> keywords.stream()
+                        .flatMap(keyword -> searchTweets(createQuery(keyword, 5, INTERVAL_TWEETS)))
+                        .distinct()
+                        .collect(Collectors.toList()));
+    }
+
+    public Flux<StatisticsData> fetchStatisticMocksDaily() {
+
+        return getKeywordsFluxWithInterval(SEND_STATISTICS_INTERVAL)
+                .flatMap(keywordList ->
+                        Flux.fromStream(keywordList.stream())
+                                .map(this::createStatisticMocksData));
+    }
 }
