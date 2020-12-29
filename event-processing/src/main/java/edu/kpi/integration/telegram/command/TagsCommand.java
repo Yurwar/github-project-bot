@@ -5,14 +5,18 @@ import edu.kpi.service.TagsService;
 import edu.kpi.utils.Constants;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static edu.kpi.utils.Constants.Telegram.TAGS_COMMAND_MESSAGE;
 
 @Component
-public class TagsCommand extends BotCommand {
+public class TagsCommand extends AbstractBotCommand {
     private final TagsService tagsService;
 
     public TagsCommand(TagsService tagsService) {
@@ -26,6 +30,10 @@ public class TagsCommand extends BotCommand {
                 .tags(List.of(strings))
                 .build();
 
-        tagsService.publishTags(tags);
+        if (!tags.getTags().isEmpty()) {
+            executeSendMessage(absSender,
+                    new SendMessage(String.valueOf(chat.getId()), TAGS_COMMAND_MESSAGE + String.join(", ", tags.getTags())));
+            tagsService.publishTags(tags);
+        }
     }
 }

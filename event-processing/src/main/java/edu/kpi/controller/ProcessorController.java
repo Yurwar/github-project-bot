@@ -62,6 +62,7 @@ public class ProcessorController {
 
         return dataFlux
                 .log()
+                .filter(event -> event.getSentimentToCountMap().size() > 0)
                 .doOnNext(notificationService::tweetStatisticNotify);
     }
 
