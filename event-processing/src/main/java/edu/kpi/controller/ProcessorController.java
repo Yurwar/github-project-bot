@@ -1,6 +1,6 @@
 package edu.kpi.controller;
 
-import edu.kpi.convertor.Convertor;
+import edu.kpi.converter.Converter;
 import edu.kpi.dto.*;
 import edu.kpi.model.data.IssueEvent;
 import edu.kpi.model.index.Issue;
@@ -24,19 +24,19 @@ public class ProcessorController {
     private final IssueService issueService;
     private final IssueEventRepository issueEventRepository;
     private final NotificationService notificationService;
-    private final Convertor<IssueEventDto, IssueEvent> reversedIssueEventConvertor;
-    private final Convertor<IssueEventDto, Issue> reversedIssueConvertor;
+    private final Converter<IssueEventDto, IssueEvent> reversedIssueEventConverter;
+    private final Converter<IssueEventDto, Issue> reversedIssueConverter;
 
     public ProcessorController(IssueService issueService,
                                IssueEventRepository issueEventRepository,
                                NotificationService notificationService,
-                               Convertor<IssueEventDto, IssueEvent> reversedIssueEventConvertor,
-                               Convertor<IssueEventDto, Issue> reversedIssueConvertor) {
+                               Converter<IssueEventDto, IssueEvent> reversedIssueEventConverter,
+                               Converter<IssueEventDto, Issue> reversedIssueConverter) {
         this.issueService = issueService;
         this.issueEventRepository = issueEventRepository;
         this.notificationService = notificationService;
-        this.reversedIssueEventConvertor = reversedIssueEventConvertor;
-        this.reversedIssueConvertor = reversedIssueConvertor;
+        this.reversedIssueEventConverter = reversedIssueEventConverter;
+        this.reversedIssueConverter = reversedIssueConverter;
     }
 
     @MessageMapping("fetchTweets")
@@ -67,10 +67,11 @@ public class ProcessorController {
     public Flux<IssueEventDto> connectIssue(Flux<IssueEventDto> issueEventFlux) {
         Flux<IssueEventDto> savedIssueFlux = issueEventFlux.map(issueEvent -> {
             Mono<IssueEvent> savedEvent = issueEventRepository
-                    .save(reversedIssueEventConvertor.convert(issueEvent));
+                    .save(reversedIssueEventConverter.convert(issueEvent));
             return Tuples.of(issueEvent, savedEvent);
         }).flatMap(tuple -> tuple.getT2()
-                .map(voidResponse -> tuple.getT1()));
+                .map(voidResponse -> tuple.getT1()))
+                .doOnNext(notificationService::issueNotify);
 
         Flux<IssueEventDto> shared = savedIssueFlux.share();
 
@@ -89,7 +90,7 @@ public class ProcessorController {
                             return tuple.getT1();
                         }))
 
-                .map(issueEvent -> Tuples.of(issueEvent, issueService.saveIssueEvent(reversedIssueConvertor.convert(issueEvent))))
+                .map(issueEvent -> Tuples.of(issueEvent, issueService.saveIssueEvent(reversedIssueConverter.convert(issueEvent))))
                 .flatMap(tuple -> tuple.getT2()
                         .map(voidResponse -> tuple.getT1()));
     }

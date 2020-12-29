@@ -1,5 +1,6 @@
 package edu.kpi.service.impl;
 
+import edu.kpi.converter.Converter;
 import edu.kpi.dto.*;
 import edu.kpi.integration.telegram.GithubProjectNotificationBot;
 import edu.kpi.service.NotificationService;
@@ -14,31 +15,42 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 public class TelegramNotificationService implements NotificationService {
     private final GithubProjectNotificationBot githubProjectNotificationBot;
     private final String telegramChatId;
+    private final Converter<IssueEventDto, String> issueEventConverter;
+    private final Converter<IssueCommentEventDto, String> issueCommentEventConverter;
+    private final Converter<PullRequestEventDto, String> pullRequestEventConverter;
+    private final Converter<ReleaseEventDto, String> releaseEventConverter;
 
     public TelegramNotificationService(GithubProjectNotificationBot githubProjectNotificationBot,
-                                       @Value("${telegram.bot.chatId}") String telegramChatId) {
+                                       @Value("${telegram.bot.chatId}") String telegramChatId,
+                                       Converter<IssueEventDto, String> issueEventConverter,
+                                       Converter<IssueCommentEventDto, String> issueCommentEventConverter,
+                                       Converter<PullRequestEventDto, String> pullRequestEventConverter, Converter<ReleaseEventDto, String> releaseEventConverter) {
         this.githubProjectNotificationBot = githubProjectNotificationBot;
         this.telegramChatId = telegramChatId;
+        this.issueEventConverter = issueEventConverter;
+        this.issueCommentEventConverter = issueCommentEventConverter;
+        this.pullRequestEventConverter = pullRequestEventConverter;
+        this.releaseEventConverter = releaseEventConverter;
     }
 
     @Override
     public void pullRequestNotify(PullRequestEventDto pullRequestEvent) {
-        executeSendMessage(pullRequestEvent.toString());
+        executeSendMessage(pullRequestEventConverter.convert(pullRequestEvent));
     }
 
     @Override
     public void issueCommentNotify(IssueCommentEventDto issueCommentEvent) {
-        executeSendMessage(issueCommentEvent.toString());
+        executeSendMessage(issueCommentEventConverter.convert(issueCommentEvent));
     }
 
     @Override
     public void issueNotify(IssueEventDto issueEvent) {
-        executeSendMessage(issueEvent.toString());
+        executeSendMessage(issueEventConverter.convert(issueEvent));
     }
 
     @Override
     public void releaseNotify(ReleaseEventDto releaseEvent) {
-        executeSendMessage(releaseEvent.toString());
+        executeSendMessage(releaseEventConverter.convert(releaseEvent));
     }
 
     @Override
@@ -48,7 +60,7 @@ public class TelegramNotificationService implements NotificationService {
 
     private void executeSendMessage(String text) {
         try {
-            githubProjectNotificationBot.execute(new SendMessage(telegramChatId, text));
+            githubProjectNotificationBot.execute(new SendMessage(telegramChatId, text, "markdown", false, false, null, null, null, false));
         } catch (TelegramApiException e) {
             log.warn(e.getMessage(), e);
         }

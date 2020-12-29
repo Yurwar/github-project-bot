@@ -20,6 +20,10 @@ public class IssueCommentEventConverter extends CommonEventConverter {
                 .owner(event.get("repository").get("owner").get("login").asText())
                 .repo(event.get("repository").get("name").asText())
                 .body(event.get("comment").get("body").asText())
+                .senderType(event.get("sender").get("type").asText())
+                .login(event.get("sender").get("login").asText())
+                .senderUrl(event.get("sender").get("html_url").asText())
+                .commentUrl(event.get("comment").get("html_url").asText())
                 .build();
     }
 }
