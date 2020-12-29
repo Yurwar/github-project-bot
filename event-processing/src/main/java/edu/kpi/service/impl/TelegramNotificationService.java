@@ -3,6 +3,7 @@ package edu.kpi.service.impl;
 import edu.kpi.converter.Converter;
 import edu.kpi.dto.*;
 import edu.kpi.integration.telegram.GithubProjectNotificationBot;
+import edu.kpi.model.data.Statistic;
 import edu.kpi.service.NotificationService;
 import edu.kpi.service.StatisticService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class TelegramNotificationService implements NotificationService {
     private final Converter<IssueCommentEventDto, String> issueCommentEventConverter;
     private final Converter<PullRequestEventDto, String> pullRequestEventConverter;
     private final Converter<ReleaseEventDto, String> releaseEventConverter;
+    private final Converter<Statistic, String> statisticConverter;
     private final StatisticService statisticService;
 
     public TelegramNotificationService(GithubProjectNotificationBot githubProjectNotificationBot,
@@ -30,6 +32,7 @@ public class TelegramNotificationService implements NotificationService {
                                        Converter<IssueCommentEventDto, String> issueCommentEventConverter,
                                        Converter<PullRequestEventDto, String> pullRequestEventConverter,
                                        Converter<ReleaseEventDto, String> releaseEventConverter,
+                                       Converter<Statistic, String> statisticConverter,
                                        StatisticService statisticService) {
         this.githubProjectNotificationBot = githubProjectNotificationBot;
         this.telegramChatId = telegramChatId;
@@ -37,6 +40,7 @@ public class TelegramNotificationService implements NotificationService {
         this.issueCommentEventConverter = issueCommentEventConverter;
         this.pullRequestEventConverter = pullRequestEventConverter;
         this.releaseEventConverter = releaseEventConverter;
+        this.statisticConverter = statisticConverter;
         this.statisticService = statisticService;
     }
 
@@ -76,7 +80,7 @@ public class TelegramNotificationService implements NotificationService {
     @PostConstruct
     private void statisticNotify() {
         statisticService.getStatisticFlux()
-                .doOnNext(statistic -> executeSendMessage(statistic.toString()))
+                .doOnNext(statistic -> executeSendMessage(statisticConverter.convert(statistic)))
                 .subscribe();
     }
 

@@ -31,6 +31,8 @@ public final class Constants {
             public final static String CROSS_MARK = "\u274C";
             public final static String RIGHT_ARROW = "\u27A1\uFE0F";
             public static final String TAG_SYMBOL = "\uD83D\uDD30";
+            public static final String CHART_SYMBOL = "\uD83D\uDCCA";
+            public static final String DIAMOND_SYMBOL = "\uD83D\uDD38";
         }
     }
 
