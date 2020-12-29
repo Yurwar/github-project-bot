@@ -20,7 +20,7 @@ public class UserMock implements User {
     public static final int BOUND_ID = 100000;
     private static final Random RANDOM = new Random();
     public static final String MOCK_NAME = "Mock";
-    private static final String FILENAME = "resources/mock-names.txt";
+    private static final String FILENAME = "twitter-integration/src/main/resources/mock-names.txt";
     private static final String IMAGE_URL = "https://images.app.goo.gl/PSLcrnzQzyzggC5v8";
 
     @Override

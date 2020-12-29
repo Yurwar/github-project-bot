@@ -19,8 +19,8 @@ public class StatusMock implements Status {
     public static final int BOUND_HOURS = 48;
     public static final int BOUND_ID = 10000000;
     private static final Random RANDOM = new Random();
-    private static final String TWEETS_FILENAME = "resources/mock-tweets.txt";
-    private static final String REACTIONS_FILENAME = "resources/mock-reactions.txt";
+    private static final String TWEETS_FILENAME = "twitter-integration/src/main/resources/mock-tweets.txt";
+    private static final String REACTIONS_FILENAME = "twitter-integration/src/main/resources/mock-reactions.txt";
 
     @Override
     public Date getCreatedAt() {
@@ -40,7 +40,7 @@ public class StatusMock implements Status {
         try (BufferedInputStream ignored = new BufferedInputStream(new FileInputStream(TWEETS_FILENAME))) {
             List<String> tweetTexts = Files.lines(Path.of(TWEETS_FILENAME)).collect(Collectors.toList());
             List<String> reactions = Files.lines(Path.of(REACTIONS_FILENAME)).collect(Collectors.toList());
-            return "" + tweetTexts.get(RANDOM.nextInt(tweetTexts.size())) + tweetTexts.get(RANDOM.nextInt(reactions.size()));
+            return "" + tweetTexts.get(RANDOM.nextInt(tweetTexts.size())) + reactions.get(RANDOM.nextInt(reactions.size()));
         } catch (IOException e) {
             e.printStackTrace();
         }
