@@ -33,6 +33,12 @@ public final class Constants {
             public static final String TAG_SYMBOL = "\uD83D\uDD30";
             public static final String CHART_SYMBOL = "\uD83D\uDCCA";
             public static final String DIAMOND_SYMBOL = "\uD83D\uDD38";
+            public static final String SPEAKING_HEAD = "\uD83D\uDDE3";
+            public static final String RAGE_FACE = "\uD83E\uDD2C";
+            public static final String ANGRY_FACE = "\uD83D\uDE20";
+            public static final String NEUTRAL_FACE = "\uD83D\uDE10";
+            public static final String RELAXED_FACE = "\uD83D\uDE0A";
+            public static final String STAR = "\u2B50";
         }
     }
 

@@ -24,6 +24,7 @@ public class TelegramNotificationService implements NotificationService {
     private final Converter<PullRequestEventDto, String> pullRequestEventConverter;
     private final Converter<ReleaseEventDto, String> releaseEventConverter;
     private final Converter<Statistic, String> statisticConverter;
+    private final Converter<TweetData, String> tweetsConverter;
     private final StatisticService statisticService;
 
     public TelegramNotificationService(GithubProjectNotificationBot githubProjectNotificationBot,
@@ -33,6 +34,7 @@ public class TelegramNotificationService implements NotificationService {
                                        Converter<PullRequestEventDto, String> pullRequestEventConverter,
                                        Converter<ReleaseEventDto, String> releaseEventConverter,
                                        Converter<Statistic, String> statisticConverter,
+                                       Converter<TweetData, String> tweetsConverter,
                                        StatisticService statisticService) {
         this.githubProjectNotificationBot = githubProjectNotificationBot;
         this.telegramChatId = telegramChatId;
@@ -41,6 +43,7 @@ public class TelegramNotificationService implements NotificationService {
         this.pullRequestEventConverter = pullRequestEventConverter;
         this.releaseEventConverter = releaseEventConverter;
         this.statisticConverter = statisticConverter;
+        this.tweetsConverter = tweetsConverter;
         this.statisticService = statisticService;
     }
 
@@ -66,7 +69,7 @@ public class TelegramNotificationService implements NotificationService {
 
     @Override
     public void tweetNotify(TweetData tweet) {
-        executeSendMessage(tweet.toString());
+        executeSendMessage(tweetsConverter.convert(tweet));
     }
 
     @Override
