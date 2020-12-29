@@ -14,8 +14,10 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -51,44 +53,36 @@ public class DefaultStatisticService implements StatisticService {
         return statisticFlux;
     }
 
-    private Flux<Statistic> createStatistic() {
-        //TODO uncomment for PROD
-//        LocalDateTime now = LocalDateTime.now();
-//        return Flux.interval(Duration.between(now, now.with(TemporalAdjusters.next(DayOfWeek.MONDAY))), Duration.ofDays(7))
-        return Flux.interval(Duration.ofSeconds(10))
+    protected Flux<Statistic> createStatistic() {
+        LocalDateTime now = LocalDateTime.now();
+        return Flux.interval(Duration.between(now, now.with(TemporalAdjusters.next(DayOfWeek.MONDAY))), Duration.ofDays(7))
+                .log()
                 .flatMap(tick -> issueEventRepository.findRepositories())
                 .map(repo -> Statistic.builder().repo(repo).build())
-                //TODO CHECK
                 .concatMap(statistic -> getAnswerAverageTime(statistic.getRepo()).map(time -> {
                     statistic.setAverageTimeBetweenCreateAndComment(time);
                     return statistic;
                 }))
-                //CORRECT
                 .concatMap(statistic -> getClosedAverageTime(statistic.getRepo()).map(time -> {
                     statistic.setAverageTimeBetweenCreateAndClose(time);
                     return statistic;
                 }))
-                //CORRECT
                 .concatMap(statistic -> getNumberOfIssuesByActionPerWeek(OPENED, statistic.getRepo()).map(number -> {
                     statistic.setNumberOfIssuesCreatedPerWeek(number);
                     return statistic;
                 }))
-                //TODO CHECK
                 .concatMap(statistic -> getNumberOfIssuesByActionPerWeek(CLOSED, statistic.getRepo()).map(number -> {
                     statistic.setNumberOfIssuesClosedPerWeek(number);
                     return statistic;
                 }))
-                //CORRECT
                 .concatMap(statistic -> getMostMentionedTopic(statistic.getRepo()).map(topic -> {
                     statistic.setMostMentionedTopic(topic);
                     return statistic;
                 }))
-                //CORRECT
                 .concatMap(statistic -> getUnansweredIssues(statistic.getRepo()).map(issues -> {
                     statistic.setUnansweredIssues(issues);
                     return statistic;
                 }))
-                //TODO CHECK
                 .concatMap(statistic -> getWaitingForResponseIssues(statistic.getRepo()).map(issues -> {
                     statistic.setWaitingForResponseIssues(issues);
                     return statistic;
