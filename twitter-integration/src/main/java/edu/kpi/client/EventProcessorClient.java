@@ -3,7 +3,6 @@ package edu.kpi.client;
 import edu.kpi.dto.StatisticsData;
 import edu.kpi.dto.TagsData;
 import edu.kpi.entities.TweetData;
-import edu.kpi.entities.TweetsEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.stereotype.Service;
