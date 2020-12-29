@@ -25,6 +25,7 @@ public class TelegramNotificationService implements NotificationService {
     private final Converter<ReleaseEventDto, String> releaseEventConverter;
     private final Converter<Statistic, String> statisticConverter;
     private final Converter<TweetData, String> tweetsConverter;
+    private final Converter<StatisticsData, String> tweetsStatisticsConverter;
     private final StatisticService statisticService;
 
     public TelegramNotificationService(GithubProjectNotificationBot githubProjectNotificationBot,
@@ -35,7 +36,7 @@ public class TelegramNotificationService implements NotificationService {
                                        Converter<ReleaseEventDto, String> releaseEventConverter,
                                        Converter<Statistic, String> statisticConverter,
                                        Converter<TweetData, String> tweetsConverter,
-                                       StatisticService statisticService) {
+                                       Converter<StatisticsData, String> tweetsStatisticsConverter, StatisticService statisticService) {
         this.githubProjectNotificationBot = githubProjectNotificationBot;
         this.telegramChatId = telegramChatId;
         this.issueEventConverter = issueEventConverter;
@@ -44,6 +45,7 @@ public class TelegramNotificationService implements NotificationService {
         this.releaseEventConverter = releaseEventConverter;
         this.statisticConverter = statisticConverter;
         this.tweetsConverter = tweetsConverter;
+        this.tweetsStatisticsConverter = tweetsStatisticsConverter;
         this.statisticService = statisticService;
     }
 
@@ -74,7 +76,7 @@ public class TelegramNotificationService implements NotificationService {
 
     @Override
     public void tweetStatisticNotify(StatisticsData statisticsData) {
-        executeSendMessage(statisticsData.toString());
+        executeSendMessage(tweetsStatisticsConverter.convert(statisticsData));
     }
 
     private void executeSendMessage(String text) {

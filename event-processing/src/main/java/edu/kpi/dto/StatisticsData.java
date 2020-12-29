@@ -16,5 +16,5 @@ import java.util.Map;
 public class StatisticsData {
 
     Date dateOfMetrics;
-    Map<Sentiment, Long> sentimentToCountMap;
+    Map<String, Long> sentimentToCountMap;
 }

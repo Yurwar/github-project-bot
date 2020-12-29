@@ -37,6 +37,7 @@ public final class Constants {
             public static final String NEUTRAL_FACE = "\uD83D\uDE10";
             public static final String RELAXED_FACE = "\uD83D\uDE0A";
             public static final String STAR = "\u2B50";
+            public static final String CALENDAR = "\uD83D\uDCC5";
         }
     }
 
