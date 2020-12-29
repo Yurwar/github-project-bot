@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,4 +24,6 @@ public class IssueCommentEvent {
     private String body;
     private String senderType;
     private String login;
+    private String issueNumber;
+    private LocalDateTime createdAt;
 }

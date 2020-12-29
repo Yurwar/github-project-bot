@@ -14,4 +14,5 @@ public class IssueCommentEvent {
     private String owner;
     private String repo;
     private String body;
+    private String issueNumber;
 }

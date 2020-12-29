@@ -13,10 +13,11 @@ import java.util.List;
 @Builder
 public class Statistic {
     private String repo;
-    private Long averageTimeBetweenCreateAndClose;
-    private Long averageTimeBetweenCreateAndComment;
+    private double averageTimeBetweenCreateAndClose;
+    private double averageTimeBetweenCreateAndComment;
     private Long numberOfIssuesCreatedPerWeek;
     private Long numberOfIssuesClosedPerWeek;
     private String mostMentionedTopic;
-    private List<IssueEvent> unclosedIssues;
+    private List<String> waitingForResponseIssues;
+    private List<String> unansweredIssues;
 }
