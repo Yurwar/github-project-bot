@@ -8,8 +8,12 @@ import edu.kpi.service.processing.EventProcessingService;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
+
 @Service
 public class PullRequestEventProcessingService implements EventProcessingService {
+
+    private static final List<String> acceptablePullRequestEvents = List.of("opened", "closed");
 
     private final EventSink<PullRequestEvent> eventSink;
     private final Flux<PullRequestEvent> eventFlux;
@@ -39,6 +43,8 @@ public class PullRequestEventProcessingService implements EventProcessingService
 
     private Flux<PullRequestEvent> getInputFlux() {
 
-        return eventFlux.log();
+        return eventFlux
+                .filter(element -> acceptablePullRequestEvents.contains(element.getAction()))
+                .log();
     }
 }

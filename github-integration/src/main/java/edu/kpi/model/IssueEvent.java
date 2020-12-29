@@ -23,4 +23,6 @@ public class IssueEvent {
     private boolean awaitingTriage;
     private List<String> similarIssues;
     private String comment;
+    private String url;
+    private String label;
 }

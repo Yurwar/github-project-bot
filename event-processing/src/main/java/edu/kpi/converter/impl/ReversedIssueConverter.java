@@ -1,12 +1,12 @@
-package edu.kpi.convertor.impl;
+package edu.kpi.converter.impl;
 
-import edu.kpi.convertor.Convertor;
+import edu.kpi.converter.Converter;
 import edu.kpi.dto.IssueEventDto;
 import edu.kpi.model.index.Issue;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ReversedIssueConvertor implements Convertor<IssueEventDto, Issue> {
+public class ReversedIssueConverter implements Converter<IssueEventDto, Issue> {
     @Override
     public Issue convert(IssueEventDto fromObject) {
         return Issue.builder()

@@ -22,4 +22,6 @@ public class IssueEventDto {
     private List<String> labels;
     private boolean awaitingTriage;
     private List<String> similarIssues;
+    private String url;
+    private String label;
 }

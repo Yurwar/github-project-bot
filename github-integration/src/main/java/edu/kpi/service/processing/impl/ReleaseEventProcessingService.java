@@ -8,8 +8,12 @@ import edu.kpi.service.processing.utils.EventSink;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
+
 @Service
 public class ReleaseEventProcessingService implements EventProcessingService {
+
+    private static final List<String> acceptableReleaseEvents = List.of("published");
 
     private final EventSink<ReleaseEvent> eventSink;
     private final Flux<ReleaseEvent> eventFlux;
@@ -39,6 +43,8 @@ public class ReleaseEventProcessingService implements EventProcessingService {
 
     private Flux<ReleaseEvent> getInputFlux() {
 
-        return eventFlux.log();
+        return eventFlux
+                .filter(element -> acceptableReleaseEvents.contains(element.getAction()))
+                .log();
     }
 }
